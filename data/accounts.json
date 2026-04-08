@@ -12,7 +12,7 @@
       "inventory": {
         "size": 9,
         "hotbarSize": 9,
-        "selectedSlot": 3,
+        "selectedSlot": 0,
         "slots": [
           {
             "itemType": "tool:pickaxe",
@@ -20,27 +20,36 @@
           },
           {
             "itemType": "block:stone",
-            "count": 54
+            "count": 99
           },
           {
             "itemType": "block:grass",
-            "count": 98
-          },
-          {
-            "itemType": "block:stone",
             "count": 99
           },
           {
             "itemType": "block:stone",
             "count": 99
           },
-          null,
-          null,
-          null,
+          {
+            "itemType": "block:stone",
+            "count": 99
+          },
+          {
+            "itemType": "block:dirt",
+            "count": 38
+          },
+          {
+            "itemType": "block:grass",
+            "count": 24
+          },
+          {
+            "itemType": "block:stone",
+            "count": 6
+          },
           null
         ]
       },
-      "mode": "creative"
+      "mode": "survival"
     },
     {
       "id": "ab30da47-f9aa-4390-9222-7db0ba53ef24",

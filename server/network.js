@@ -95,7 +95,6 @@ export function createServerNetwork({ wss, playerManager, world, auth }) {
         if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(blockType)) return;
         if (playerManager.tryPlaceBlock(id, x, y, blockType)) {
           const update = { x, y, blockType };
-          send(ws, "blockUpdate", update);
           broadcast("blockUpdate", update);
           send(ws, "inventory", { inventory: playerManager.getInventory(id) });
         }
@@ -110,7 +109,6 @@ export function createServerNetwork({ wss, playerManager, world, auth }) {
         if (!mined) return;
         if (mined.broken) {
           for (const update of mined.updates || []) {
-            send(ws, "blockUpdate", update);
             broadcast("blockUpdate", update);
           }
           send(ws, "blockDamage", { x, y, progress: 0 });

@@ -990,7 +990,8 @@ export class PlayerManager {
         const map = this._getChestMap();
         delete map[chestKey(bx, by)];
       }
-      return { broken: true, type: BlockTypes.AIR, progress: 0 };
+      const updates = [{ x: bx, y: by, blockType: BlockTypes.AIR }];
+      return { broken: true, type: BlockTypes.AIR, progress: 0, updates };
     }
 
     const now = Date.now();
