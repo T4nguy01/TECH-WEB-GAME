@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TWG</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="pageBackdrop" aria-hidden="true">
+      <div class="orb orbOne"></div>
+      <div class="orb orbTwo"></div>
+      <div class="orb orbThree"></div>
+      <div class="gridNoise"></div>
+    </div>
+
+    <div class="layout">
+      <header class="topbar">
+        <div class="brandBlock">
+          <div class="brand">TECH WEB GAME</div>
+          <div class="brandSub">Sandbox multijoueur 2D, serveur autoritaire, interface moderne.</div>
+        </div>
+
+        <div class="status">
+          <button id="skinButton" class="pill pillButton" type="button">apparence</button>
+          <button id="inventoryButton" class="pill pillButton" type="button">inventaire</button>
+          <button id="modeButton" class="pill pillButton" type="button">mode: survie</button>
+          <button id="funButton" class="pill pillButton" type="button">options rigolotes</button>
+          <span id="netStatus" class="pill">hors ligne</span>
+          <span id="fps" class="pill">fps : --</span>
+          <span id="pos" class="pill">x : -- y : --</span>
+        </div>
+      </header>
+
+      <main class="stage">
+        <div class="sceneShell">
+          <div class="sceneHeader">
+            <div class="sceneTitleWrap">
+              <div class="sceneKicker">Vue du monde</div>
+              <div class="sceneTitle">Explore le monde, mine, combats et construis avec les autres joueurs.</div>
+            </div>
+            <div class="sceneBadges">
+              <span class="sceneBadge">T : chat</span>
+              <span class="sceneBadge">Clic gauche : attaquer ou miner</span>
+              <span class="sceneBadge">Clic droit : poser</span>
+            </div>
+          </div>
+
+          <div class="canvasFrame">
+            <canvas id="game" width="1280" height="720"></canvas>
+          </div>
+        </div>
+
+        <div id="hotbar" class="hotbar" aria-label="Barre rapide"></div>
+
+        <section class="chatHud" aria-label="Chat">
+          <div id="chatLog" class="chatLog chatHudLog" aria-label="Journal du chat"></div>
+          <form id="chatForm" class="chatForm chatHudForm" autocomplete="off">
+            <input id="chatInput" class="chatInput" placeholder="Entrée pour discuter..." maxlength="180" />
+          </form>
+        </section>
+
+        <section class="playersHud" aria-label="Joueurs en ligne">
+          <div class="playersTitle">
+            Joueurs <span id="playerCount" class="playersCount">0</span>
+          </div>
+          <div id="playerList" class="playersList"></div>
+        </section>
+
+        <section class="inventoryHud" aria-label="Inventaire et santé du joueur">
+          <div class="inventoryTitle">Inventaire</div>
+          <div class="inventoryHealthRow">
+            <div class="inventoryHealthBar" aria-hidden="true">
+              <div id="healthFill" class="inventoryHealthFill"></div>
+            </div>
+            <div id="healthText" class="inventoryHealthText">20/20</div>
+          </div>
+          <div id="selectedItem" class="inventoryItemName">Emplacement vide</div>
+          <div id="selectedHint" class="inventoryItemHint">Aucun objet sélectionné</div>
+        </section>
+
+        <section class="controlsHud" aria-label="Raccourcis">
+          <div class="controlsTitle">Raccourcis</div>
+          <div class="controlList">
+            <div class="controlChip"><span>Déplacement</span><strong>A / D</strong></div>
+            <div class="controlChip"><span>Saut</span><strong>W / Espace</strong></div>
+            <div class="controlChip"><span>Chat</span><strong>T</strong></div>
+            <div class="controlChip"><span>Inventaire</span><strong>I / E</strong></div>
+            <div class="controlChip"><span>Jeter</span><strong>J</strong></div>
+            <div class="controlChip"><span>Coffre</span><strong>Clic droit</strong></div>
+            <div class="controlChip"><span>Armes</span><strong>Clic gauche</strong></div>
+            <div class="controlChip"><span>Skin</span><strong>Bouton du haut</strong></div>
+          </div>
+        </section>
+      </main>
+
+      <div id="authOverlay" class="overlay hidden" aria-label="Authentification">
+        <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+          <div class="dialogHeader">
+            <div id="authTitle" class="dialogTitle">Connexion</div>
+            <div class="dialogSub">Crée un compte ou connecte-toi pour rejoindre le monde.</div>
+          </div>
+
+          <form id="authForm" class="authForm" autocomplete="off">
+            <label class="field">
+              <span>Nom d'utilisateur</span>
+              <input id="authUser" class="input" minlength="3" maxlength="16" required />
+            </label>
+            <label class="field">
+              <span>Mot de passe</span>
+              <input id="authPass" class="input" type="password" minlength="6" maxlength="64" required />
+            </label>
+
+            <div id="authError" class="error" aria-live="polite"></div>
+
+            <div class="row">
+              <button id="btnLogin" class="btn" type="button">Connexion</button>
+              <button id="btnRegister" class="btn btnPrimary" type="button">Créer un compte</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="skinOverlay" class="overlay hidden" aria-label="Sélection du skin">
+        <div class="dialog skinDialog" role="dialog" aria-modal="true" aria-labelledby="skinTitle">
+          <div class="dialogHeader">
+            <div id="skinTitle" class="dialogTitle">Choisis ton skin</div>
+            <div class="dialogSub">Choisis un style. Il est enregistré sur ton compte et visible par les autres joueurs.</div>
+          </div>
+
+          <div id="skinGrid" class="skinGrid" aria-label="Liste des skins"></div>
+
+          <div class="row">
+            <button id="skinClose" class="btn" type="button">Fermer</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="inventoryOverlay" class="overlay hidden" aria-label="Inventaire">
+        <div class="dialog inventoryDialog" role="dialog" aria-modal="true" aria-labelledby="inventoryTitle">
+          <div class="dialogHeader">
+            <div id="inventoryTitle" class="dialogTitle">Inventaire</div>
+            <div id="inventorySub" class="dialogSub">Vue agrandie pour lire plus vite les objets, les quantités et les recettes.</div>
+          </div>
+
+          <div class="inventoryPane">
+            <section class="inventoryColumn" aria-label="Inventaire du joueur">
+              <div class="panelLabel">Sac</div>
+              <div id="inventoryGrid" class="inventoryGrid"></div>
+            </section>
+
+            <section id="chestSection" class="inventoryColumn hidden" aria-label="Coffre">
+              <div class="panelLabel">Coffre</div>
+              <div id="chestGrid" class="inventoryGrid"></div>
+            </section>
+
+            <section class="inventoryColumn" aria-label="Fabrication">
+              <div class="panelLabel">Fabrication</div>
+              <div id="craftList" class="craftList"></div>
+            </section>
+          </div>
+
+          <div class="row">
+            <button id="inventoryDrop" class="btn btnPrimary" type="button" title="Clique ici ou appuie sur J pour jeter l'objet">Jeter l'objet</button>
+            <button id="inventoryClose" class="btn" type="button">Fermer</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="funOverlay" class="overlay hidden" aria-label="Options rigolotes">
+        <div class="dialog funDialog" role="dialog" aria-modal="true" aria-labelledby="funTitle">
+          <div class="dialogHeader">
+            <div id="funTitle" class="dialogTitle">Options rigolotes</div>
+            <div class="dialogSub">Des effets visuels un peu absurdes, juste pour le plaisir.</div>
+          </div>
+
+          <div class="funList">
+            <label class="funToggle">
+              <input id="sparkleToggle" type="checkbox" />
+              <div>
+                <strong>Paillettes</strong>
+                <span>Ajoute des petites particules quand tu mines, poses ou fabriques.</span>
+              </div>
+            </label>
+
+            <label class="funToggle">
+              <input id="discoToggle" type="checkbox" />
+              <div>
+                <strong>Mode disco</strong>
+                <span>Ton personnage local prend des couleurs arc-en-ciel.</span>
+              </div>
+            </label>
+
+            <label class="funToggle">
+              <input id="giantHeadToggle" type="checkbox" />
+              <div>
+                <strong>Tête géante</strong>
+                <span>Ton perso devient un peu plus cartoon, avec une grosse tête.</span>
+              </div>
+            </label>
+
+            <label class="funToggle">
+              <input id="jumpBurstToggle" type="checkbox" />
+              <div>
+                <strong>Mode trampoline</strong>
+                <span>Chaque saut déclenche un petit nuage de particules et une secousse.</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="row">
+            <button id="funClose" class="btn" type="button">Fermer</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="chat hidden" aria-hidden="true"></section>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

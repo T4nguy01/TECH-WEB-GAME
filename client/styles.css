@@ -1,0 +1,1268 @@
+:root {
+  --bg: #070b16;
+  --panel: rgba(10, 15, 28, 0.64);
+  --panel-strong: rgba(10, 15, 28, 0.84);
+  --stroke: rgba(255, 255, 255, 0.12);
+  --stroke-strong: rgba(255, 255, 255, 0.2);
+  --text: rgba(255, 255, 255, 0.94);
+  --muted: rgba(255, 255, 255, 0.68);
+  --accent: #8b7bff;
+  --accent-2: #2dd4bf;
+  --ok: #25d695;
+  --err: #ff4d6d;
+  --shadow: 0 28px 90px rgba(0, 0, 0, 0.44);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  background:
+    radial-gradient(900px 520px at 14% 14%, rgba(124, 92, 255, 0.22), transparent 56%),
+    radial-gradient(760px 520px at 82% 18%, rgba(37, 214, 149, 0.16), transparent 56%),
+    radial-gradient(920px 620px at 50% 102%, rgba(255, 255, 255, 0.06), transparent 62%),
+    var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.pageBackdrop {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(18px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  animation: floatOrb 18s ease-in-out infinite;
+}
+
+.orbOne {
+  width: 340px;
+  height: 340px;
+  left: -90px;
+  top: 4vh;
+  background: radial-gradient(circle at 30% 30%, rgba(124, 92, 255, 0.7), rgba(124, 92, 255, 0.04));
+}
+
+.orbTwo {
+  width: 260px;
+  height: 260px;
+  right: 4vw;
+  top: 11vh;
+  animation-delay: -4s;
+  background: radial-gradient(circle at 30% 30%, rgba(45, 212, 191, 0.7), rgba(45, 212, 191, 0.04));
+}
+
+.orbThree {
+  width: 420px;
+  height: 420px;
+  right: 18vw;
+  bottom: -120px;
+  animation-delay: -8s;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 189, 73, 0.4), rgba(255, 189, 73, 0.04));
+}
+
+.gridNoise {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.45), transparent 78%);
+  opacity: 0.35;
+}
+
+@keyframes floatOrb {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.04);
+  }
+}
+
+.layout {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  position: relative;
+  z-index: 1;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(11, 16, 32, 0.88), rgba(11, 16, 32, 0.54));
+  backdrop-filter: blur(18px);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.16);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.brandBlock {
+  display: grid;
+  gap: 4px;
+}
+
+.brand {
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  font-size: 14px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.brandSub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.35;
+}
+
+.status {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.pill {
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  border-radius: 999px;
+  color: var(--muted);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.pillButton {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.pillButton:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pillButton:focus-visible,
+.btn:focus-visible,
+.skinCard:focus-visible,
+.input:focus-visible,
+.chatInput:focus-visible {
+  outline: 2px solid rgba(124, 92, 255, 0.95);
+  outline-offset: 2px;
+}
+
+.pill.ok {
+  border-color: rgba(37, 214, 149, 0.4);
+  color: rgba(225, 255, 245, 0.92);
+}
+
+.pill.err {
+  border-color: rgba(255, 77, 109, 0.5);
+  color: rgba(255, 235, 239, 0.92);
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  isolation: isolate;
+}
+
+.sceneShell {
+  width: min(1440px, calc(100vw - 24px));
+  display: grid;
+  gap: 12px;
+}
+
+.sceneHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 6px;
+}
+
+.sceneTitleWrap {
+  display: grid;
+  gap: 4px;
+}
+
+.sceneKicker {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.sceneTitle {
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 850;
+  color: rgba(255, 255, 255, 0.94);
+  letter-spacing: -0.02em;
+}
+
+.sceneBadges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.sceneBadge {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(10px);
+}
+
+.canvasFrame {
+  position: relative;
+  padding: 12px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background:
+    radial-gradient(900px 300px at 50% 0%, rgba(124, 92, 255, 0.16), transparent 55%),
+    linear-gradient(180deg, rgba(11, 16, 32, 0.8), rgba(11, 16, 32, 0.48));
+  box-shadow: var(--shadow);
+}
+
+.canvasFrame::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 23px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#game {
+  width: min(1280px, calc(100vw - 48px));
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(1000px 520px at 50% 10%, rgba(255, 255, 255, 0.04), transparent 60%),
+    linear-gradient(180deg, rgba(7, 11, 22, 0.98), rgba(7, 11, 22, 0.88));
+  display: block;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.hotbar {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(9, minmax(58px, 1fr));
+  gap: 10px;
+  width: min(840px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(160px 120px at 50% 0%, rgba(124, 92, 255, 0.12), transparent 70%),
+    rgba(11, 16, 32, 0.68);
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+}
+
+.slot {
+  min-width: 58px;
+  min-height: 68px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  display: grid;
+  grid-template-areas:
+    "index index"
+    "label label"
+    "count count";
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 4px;
+  padding: 8px 8px 7px;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 12px;
+  letter-spacing: 0.25px;
+  position: relative;
+  overflow: hidden;
+}
+
+.slot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+  pointer-events: none;
+}
+
+.slot.active {
+  outline: 2px solid rgba(124, 92, 255, 0.8);
+  box-shadow:
+    0 0 0 6px rgba(124, 92, 255, 0.18),
+    0 14px 30px rgba(124, 92, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.slotIndex {
+  grid-area: index;
+  justify-self: start;
+  align-self: start;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.56);
+}
+
+.slotLabel {
+  grid-area: label;
+  align-self: center;
+  justify-self: center;
+  font-weight: 900;
+  font-size: 13px;
+  text-transform: uppercase;
+  line-height: 1.05;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slotCount {
+  grid-area: count;
+  justify-self: end;
+  align-self: end;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.chat {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(11, 16, 32, 0.55);
+  backdrop-filter: blur(10px);
+}
+
+.chatHud {
+  position: absolute;
+  top: 92px;
+  left: 18px;
+  width: min(360px, calc(100vw - 48px));
+  display: grid;
+  gap: 8px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.chatHudLog {
+  max-height: 220px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(11, 16, 32, 0.55);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  pointer-events: auto;
+}
+
+.chatHudForm {
+  padding: 0;
+  pointer-events: auto;
+}
+
+.chatHudForm .chatInput {
+  background: rgba(11, 16, 32, 0.55);
+  backdrop-filter: blur(10px);
+}
+
+.playersHud {
+  position: absolute;
+  top: 92px;
+  right: 18px;
+  width: min(260px, calc(100vw - 48px));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(11, 16, 32, 0.55);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  padding: 10px 10px 8px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.playersTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.88);
+  padding: 2px 4px 8px;
+}
+
+.playersCount {
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.playersList {
+  max-height: 180px;
+  overflow: auto;
+  padding: 0 4px 4px;
+  display: grid;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.playerRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+}
+
+.playerRow.me {
+  border-color: rgba(37, 214, 149, 0.35);
+}
+
+.playerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+}
+
+.playerRow.me .playerDot {
+  background: rgba(37, 214, 149, 0.95);
+  box-shadow: 0 0 0 4px rgba(37, 214, 149, 0.14);
+}
+
+.playerMeta {
+  min-width: 86px;
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.playerMetaText {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.playerMiniHealth {
+  width: 86px;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.playerMiniHealthFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(37, 214, 149, 0.98), rgba(124, 92, 255, 0.9));
+}
+
+.inventoryHud {
+  position: absolute;
+  left: 18px;
+  bottom: 104px;
+  width: min(240px, calc(100vw - 48px));
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(11, 16, 32, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.inventoryTitle {
+  font-weight: 800;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: 0.2px;
+}
+
+.inventoryHealthRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inventoryHealthBar {
+  flex: 1;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.inventoryHealthFill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(37, 214, 149, 0.98), rgba(255, 189, 73, 0.95));
+  border-radius: inherit;
+}
+
+.inventoryHealthText {
+  min-width: 52px;
+  text-align: right;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.inventoryItemName {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.inventoryItemHint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.35;
+}
+
+.controlsHud {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: min(280px, calc(100vw - 48px));
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(11, 16, 32, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.controlsTitle {
+  font-weight: 800;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: 0.2px;
+}
+
+.controlList {
+  display: grid;
+  gap: 8px;
+}
+
+.controlChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+}
+
+.controlChip strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.chatLog {
+  max-height: 140px;
+  overflow: auto;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.chatLine {
+  padding: 2px 0;
+  word-break: break-word;
+}
+
+.chatForm {
+  padding: 10px 14px 14px;
+}
+
+.chatInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  outline: none;
+}
+
+.chatInput:focus {
+  border-color: rgba(124, 92, 255, 0.55);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  z-index: 50;
+}
+
+.hidden {
+  display: none;
+}
+
+.dialog {
+  width: min(520px, calc(100vw - 24px));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(11, 16, 32, 0.72);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+}
+
+.skinDialog {
+  width: min(720px, calc(100vw - 24px));
+}
+
+.inventoryDialog {
+  width: min(1180px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  overflow: auto;
+  padding: 20px;
+}
+
+.funDialog {
+  width: min(680px, calc(100vw - 24px));
+}
+
+.inventoryTabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 4px 12px;
+  flex-wrap: wrap;
+}
+
+.tabButton {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.tabButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.tabButton.active {
+  color: rgba(255, 255, 255, 0.96);
+  border-color: rgba(124, 92, 255, 0.5);
+  background: rgba(124, 92, 255, 0.16);
+}
+
+.inventoryPane {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.85fr) minmax(0, 0.95fr);
+  gap: 18px;
+  padding: 8px 4px 4px;
+}
+
+.inventoryColumn {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+}
+
+.panelLabel {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.68);
+  padding: 0 2px;
+}
+
+.inventoryGrid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#chestGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.invSlot.container {
+  border-color: rgba(255, 189, 73, 0.22);
+  background: rgba(255, 189, 73, 0.06);
+}
+
+.invSlot {
+  appearance: none;
+  min-height: 76px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.96);
+  padding: 10px 11px;
+  display: grid;
+  grid-template-areas:
+    "index index"
+    "name name"
+    "count count";
+  gap: 4px 6px;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.invSlot:hover {
+  transform: translateY(-1px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.06)),
+    rgba(255, 255, 255, 0.06);
+}
+
+.invSlot.hotbar {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.invSlot.storage {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.invSlot.selected {
+  border-color: rgba(124, 92, 255, 0.75);
+  box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.16);
+}
+
+.invSlot.active {
+  border-color: rgba(37, 214, 149, 0.65);
+}
+
+.invIndex {
+  grid-area: index;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.invName {
+  grid-area: name;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-wrap: balance;
+}
+
+.invCount {
+  grid-area: count;
+  justify-self: end;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.invSlot.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+  transform: scale(0.98);
+  box-shadow: 0 0 0 4px rgba(37, 214, 149, 0.1);
+}
+
+.invSlot.dropTarget {
+  border-color: rgba(37, 214, 149, 0.75);
+  box-shadow: 0 0 0 4px rgba(37, 214, 149, 0.14);
+}
+
+#inventoryDrop.dropTarget {
+  border-color: rgba(37, 214, 149, 0.9);
+  box-shadow: 0 0 0 4px rgba(37, 214, 149, 0.16);
+  transform: translateY(-1px);
+}
+
+#inventoryDrop:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.craftList {
+  display: grid;
+  gap: 10px;
+}
+
+.craftCard {
+  appearance: none;
+  display: grid;
+  gap: 5px;
+  text-align: left;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(220px 80px at 0% 0%, rgba(124, 92, 255, 0.14), transparent 60%),
+    rgba(255, 255, 255, 0.05);
+  padding: 11px 12px;
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.craftCard:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.18);
+  background:
+    radial-gradient(240px 90px at 0% 0%, rgba(124, 92, 255, 0.18), transparent 60%),
+    rgba(255, 255, 255, 0.08);
+}
+
+.craftCard:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.craftTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.craftTitle {
+  font-weight: 850;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.craftStatus {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.craftStatus.ready {
+  color: rgba(225, 255, 245, 0.92);
+  background: rgba(37, 214, 149, 0.16);
+  border: 1px solid rgba(37, 214, 149, 0.24);
+}
+
+.craftStatus.locked {
+  color: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.craftReq,
+.craftOut {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.35;
+}
+
+.craftOut {
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.skinGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 4px;
+}
+
+.skinCard {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 10px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: left;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.skinCard:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.skinCard.active {
+  border-color: rgba(124, 92, 255, 0.7);
+  box-shadow: 0 0 0 5px rgba(124, 92, 255, 0.15);
+}
+
+.skinPreview {
+  position: relative;
+  height: 88px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  background:
+    radial-gradient(60px 60px at 30% 25%, rgba(255, 255, 255, 0.15), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.08));
+}
+
+.skinPreview::before,
+.skinPreview::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.skinPreview::before {
+  bottom: 14px;
+  width: 30px;
+  height: 40px;
+  border-radius: 10px 10px 8px 8px;
+  background: var(--skin-body, #fff);
+  box-shadow:
+    0 -42px 0 0 var(--skin-hair, #222),
+    0 -6px 0 0 var(--skin-accent, #999),
+    0 0 0 2px var(--skin-outline, #000);
+}
+
+.skinPreview::after {
+  bottom: 8px;
+  width: 34px;
+  height: 2px;
+  background: var(--skin-outline, #000);
+  box-shadow:
+    0 -16px 0 0 var(--skin-outline, #000),
+    0 -22px 0 0 var(--skin-outline, #000);
+}
+
+.skinLabel {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.skinDialog .row {
+  justify-content: space-between;
+}
+
+.skinDialog .row .btn {
+  min-width: 96px;
+}
+
+.funList {
+  display: grid;
+  gap: 10px;
+  padding: 4px;
+}
+
+.funToggle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.funToggle input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-2);
+}
+
+.funToggle strong {
+  display: block;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.funToggle span {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dialogHeader {
+  padding: 6px 4px 10px;
+}
+
+.dialogTitle {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.dialogSub {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+}
+
+.authForm {
+  display: grid;
+  gap: 10px;
+  padding: 4px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  outline: none;
+}
+
+.input:focus {
+  border-color: rgba(124, 92, 255, 0.55);
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 9px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btnPrimary {
+  background: linear-gradient(180deg, rgba(124, 92, 255, 0.28), rgba(124, 92, 255, 0.18));
+  border-color: rgba(124, 92, 255, 0.55);
+}
+
+.btnPrimary:hover {
+  background: linear-gradient(180deg, rgba(124, 92, 255, 0.34), rgba(124, 92, 255, 0.22));
+}
+
+.error {
+  min-height: 18px;
+  color: rgba(255, 77, 109, 0.95);
+  font-size: 13px;
+}
+
+.skinDialog,
+.dialog {
+  max-width: 100%;
+}
+
+@media (max-width: 980px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .status {
+    justify-content: flex-start;
+  }
+
+  .sceneHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sceneBadges {
+    justify-content: flex-start;
+  }
+
+  .chatHud,
+  .playersHud,
+  .inventoryHud,
+  .controlsHud {
+    position: static;
+    width: 100%;
+    max-width: none;
+  }
+
+  .stage {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .sceneShell {
+    width: 100%;
+  }
+
+  .canvasFrame {
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  #game {
+    width: 100%;
+  }
+
+  .hotbar {
+    position: static;
+    transform: none;
+    margin: 6px auto 0;
+    grid-template-columns: repeat(9, minmax(40px, 1fr));
+    width: min(100%, 680px);
+    justify-content: center;
+  }
+
+  .inventoryPane {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .stage {
+    padding: 10px;
+  }
+
+  .sceneTitle {
+    font-size: 18px;
+  }
+
+  .sceneBadge {
+    font-size: 11px;
+  }
+
+  .hotbar {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .slot {
+    min-width: 0;
+    min-height: 52px;
+    padding: 6px 6px 5px;
+    border-radius: 14px;
+  }
+
+  .slotLabel {
+    font-size: 10px;
+  }
+
+  .slotIndex,
+  .slotCount {
+    font-size: 9px;
+  }
+
+  .inventoryGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .orb {
+    animation: none;
+  }
+}

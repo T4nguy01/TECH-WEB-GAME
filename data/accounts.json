@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "users": [
+    {
+      "id": "815de261-5c74-494d-9f3c-3845f16dc84f",
+      "username": "T4nguy",
+      "provider": "local",
+      "salt": "377ed1ef43910981d5c28d38843afc61",
+      "hash": "5325da10e1f0213698561656dc5e1c521ae4f7c99d8eba16ff476bc3c58a775f",
+      "createdAt": 1775632123779,
+      "skin": "ember",
+      "inventory": {
+        "size": 9,
+        "hotbarSize": 9,
+        "selectedSlot": 3,
+        "slots": [
+          {
+            "itemType": "tool:pickaxe",
+            "count": 3
+          },
+          {
+            "itemType": "block:stone",
+            "count": 54
+          },
+          {
+            "itemType": "block:grass",
+            "count": 98
+          },
+          {
+            "itemType": "block:stone",
+            "count": 99
+          },
+          {
+            "itemType": "block:stone",
+            "count": 99
+          },
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "mode": "creative"
+    },
+    {
+      "id": "ab30da47-f9aa-4390-9222-7db0ba53ef24",
+      "username": "gsimao",
+      "provider": "local",
+      "skin": "classic",
+      "salt": "9d925c83ac21de1e6dba494d1f19e1d3",
+      "hash": "8507f7b17483af022cf004e87d048d32450f8efca6f31651ebff24d99f62fb8f",
+      "createdAt": 1775634695149,
+      "inventory": {
+        "size": 9,
+        "hotbarSize": 9,
+        "selectedSlot": 0,
+        "slots": [
+          {
+            "itemType": "tool:pickaxe_plus",
+            "count": 1
+          },
+          {
+            "itemType": "block:stone",
+            "count": 99
+          },
+          {
+            "itemType": "block:stone",
+            "count": 99
+          },
+          {
+            "itemType": "block:stone",
+            "count": 93
+          },
+          {
+            "itemType": "block:grass",
+            "count": 15
+          },
+          {
+            "itemType": "block:wood",
+            "count": 99
+          },
+          {
+            "itemType": "material:coal",
+            "count": 22
+          },
+          {
+            "itemType": "material:iron",
+            "count": 11
+          },
+          {
+            "itemType": "block:dirt",
+            "count": 67
+          }
+        ]
+      },
+      "mode": "survival"
+    },
+    {
+      "id": "4542e41f-f50e-4740-8e13-f406cbc6d77e",
+      "username": "gsimaio",
+      "provider": "local",
+      "skin": "classic",
+      "inventory": {
+        "size": 36,
+        "hotbarSize": 9,
+        "selectedSlot": 1,
+        "slots": [
+          {
+            "itemType": "block:dirt",
+            "count": 17
+          },
+          {
+            "itemType": "block:stone",
+            "count": 11
+          },
+          {
+            "itemType": "block:grass",
+            "count": 42
+          },
+          null,
+          {
+            "itemType": "tool:pickaxe",
+            "count": 2
+          },
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "salt": "ef14e61cbd9c2c1e919296d90e3c72f8",
+      "hash": "8b6bb0d3620579fd71f24099772720c0f968d2465f1272c1a96b996c25007d93",
+      "createdAt": 1775635725569
+    }
+  ]
+}
