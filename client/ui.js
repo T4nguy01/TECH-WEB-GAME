@@ -46,6 +46,18 @@ export class UI {
     selectedHintEl,
     inventoryItemNameEl,
     inventoryItemDescEl,
+    // --- Multiplayer elements ---
+    emoteWheelEl,
+    scoreboardOverlayEl,
+    scoreboardBodyEl,
+    killFeedEl,
+    tradeOverlayEl,
+    tradePartnerNameEl,
+    tradeLocalGridEl,
+    tradeRemoteGridEl,
+    tradeStatusEl,
+    tradeConfirmEl,
+    tradeCancelEl,
     // InputManager reference
     inputManager,
   }) {
@@ -89,6 +101,19 @@ export class UI {
     this.selectedHintEl = selectedHintEl;
     this.inventoryItemNameEl = inventoryItemNameEl;
     this.inventoryItemDescEl = inventoryItemDescEl;
+    // Multiplayer elements
+    this.emoteWheelEl = emoteWheelEl;
+    this.scoreboardOverlayEl = scoreboardOverlayEl;
+    this.scoreboardBodyEl = scoreboardBodyEl;
+    this.killFeedEl = killFeedEl;
+    this.tradeOverlayEl = tradeOverlayEl;
+    this.tradePartnerNameEl = tradePartnerNameEl;
+    this.tradeLocalGridEl = tradeLocalGridEl;
+    this.tradeRemoteGridEl = tradeRemoteGridEl;
+    this.tradeStatusEl = tradeStatusEl;
+    this.tradeConfirmEl = tradeConfirmEl;
+    this.tradeCancelEl = tradeCancelEl;
+
     this.inputManager = inputManager;
 
     // Callbacks
@@ -103,6 +128,9 @@ export class UI {
     this.onInventoryTransfer = null;
     this.onSkinOpen = null;
     this.onDisconnect = null;
+    this.onEmoteSelect = null;
+    this.onTradeConfirm = null;
+    this.onTradeCancel = null;
 
     // State
     this._activeHotbar = 0;
@@ -120,6 +148,7 @@ export class UI {
     this._chest = null;
     this._localHud = { health: 20, maxHealth: 20, itemLabel: "Emplacement vide", itemHint: "Aucun objet sélectionné" };
     this._debugVisible = false;
+    this._localPlayerId = null;
 
 
     this.playerListEl = document.getElementById("playerList");
@@ -137,6 +166,10 @@ export class UI {
 
     this._bindDebug();
     this._bindKeybind();
+    this._bindEmotes();
+    this._bindScoreboard();
+    this._bindTrade();
+
     this.setGameMode("survival");
     this.setFunOptions(this._funOptions);
   }
@@ -1102,6 +1135,153 @@ export class UI {
     }
 
     // Also update tab list if visible
-    if (this._tabVisible) this._renderTabPlayerList();
+    this.updateScoreboard(list, localId);
+  }
+
+  setLocalPlayerId(id) {
+    this._localPlayerId = id;
+  }
+
+  // ═══════════════════════════════════════
+  // EMOTES
+  // ═══════════════════════════════════════
+
+  _bindEmotes() {
+    if (!this.emoteWheelEl) return;
+    const items = this.emoteWheelEl.querySelectorAll(".emoteItem");
+    for (const el of items) {
+      el.addEventListener("click", () => {
+        const emote = el.getAttribute("data-emote");
+        if (this.onEmoteSelect) this.onEmoteSelect(emote);
+        this.hideEmoteWheel();
+      });
+    }
+
+    // Close on click outside
+    this.emoteWheelEl.addEventListener("click", (e) => {
+      if (e.target === this.emoteWheelEl) this.hideEmoteWheel();
+    });
+
+    // Toggle via InputManager
+    if (this.inputManager) {
+      this.inputManager.on("emote", () => {
+        if (this.emoteWheelEl.classList.contains("hidden")) {
+          this.showEmoteWheel();
+        } else {
+          this.hideEmoteWheel();
+        }
+      });
+    }
+  }
+
+  showEmoteWheel() {
+    if (this._anyOverlayOpen()) return;
+    this.emoteWheelEl?.classList.remove("hidden");
+  }
+
+  hideEmoteWheel() {
+    this.emoteWheelEl?.classList.add("hidden");
+  }
+
+  // ═══════════════════════════════════════
+  // SCOREBOARD
+  // ═══════════════════════════════════════
+
+  _bindScoreboard() {
+    if (!this.inputManager) return;
+    this.inputManager.on("scoreboard", (active) => {
+      if (active) {
+        this.scoreboardOverlayEl?.classList.remove("hidden");
+      } else {
+        this.scoreboardOverlayEl?.classList.add("hidden");
+      }
+    });
+  }
+
+  updateScoreboard(players, localId = this._localPlayerId) {
+    if (!this.scoreboardBodyEl) return;
+    this.scoreboardBodyEl.innerHTML = "";
+
+    // Sort by kills descending
+    const sorted = [...players].sort((a, b) => (b.kills || 0) - (a.kills || 0));
+
+    for (const p of sorted) {
+      const tr = document.createElement("tr");
+      if (String(p.id) === String(localId || "")) {
+        tr.className = "me";
+      }
+
+      const nameTd = document.createElement("td");
+      nameTd.textContent = p.name;
+
+      const killsTd = document.createElement("td");
+      killsTd.textContent = String(p.kills || 0);
+
+      const deathsTd = document.createElement("td");
+      deathsTd.textContent = String(p.deaths || 0);
+
+      const blocksTd = document.createElement("td");
+      blocksTd.textContent = String(p.blocksPlaced || 0);
+
+      tr.appendChild(nameTd);
+      tr.appendChild(killsTd);
+      tr.appendChild(deathsTd);
+      tr.appendChild(blocksTd);
+      this.scoreboardBodyEl.appendChild(tr);
+    }
+  }
+
+  // ═══════════════════════════════════════
+  // KILL FEED
+  // ═══════════════════════════════════════
+
+  addKillFeedEntry(killer, victim) {
+    if (!this.killFeedEl) return;
+    const el = document.createElement("div");
+    el.className = "killEntry";
+    el.innerHTML = `<span class="killer">${killer}</span> a éliminé <span class="victim">${victim}</span>`;
+    this.killFeedEl.appendChild(el);
+
+    // Auto remove after 5s
+    setTimeout(() => {
+      el.style.opacity = "0";
+      el.style.transform = "translateX(20px)";
+      setTimeout(() => el.remove(), 500);
+    }, 4500);
+  }
+
+  // ═══════════════════════════════════════
+  // TRADE
+  // ═══════════════════════════════════════
+
+  _bindTrade() {
+    this.tradeConfirmEl?.addEventListener("click", () => {
+      if (this.onTradeConfirm) this.onTradeConfirm();
+    });
+    this.tradeCancelEl?.addEventListener("click", () => {
+      if (this.onTradeCancel) this.onTradeCancel();
+      this.hideTrade();
+    });
+
+    // Click outside to cancel
+    this.tradeOverlayEl?.addEventListener("click", (e) => {
+      if (e.target === this.tradeOverlayEl) {
+        if (this.onTradeCancel) this.onTradeCancel();
+        this.hideTrade();
+      }
+    });
+  }
+
+  showTrade(partnerName) {
+    if (this.tradePartnerNameEl) this.tradePartnerNameEl.textContent = partnerName;
+    this.tradeOverlayEl?.classList.remove("hidden");
+  }
+
+  hideTrade() {
+    this.tradeOverlayEl?.classList.add("hidden");
+  }
+
+  setTradeStatus(text) {
+    if (this.tradeStatusEl) this.tradeStatusEl.textContent = text;
   }
 }

@@ -30,6 +30,9 @@ const DEFAULT_BINDINGS = {
   hotbar7:     ["7"],
   hotbar8:     ["8"],
   hotbar9:     ["9"],
+  emote:       ["b"],
+  ping:        ["v"],
+  scoreboard:  ["tab"],
 };
 
 /** Actions that should work even when an overlay is open */
@@ -41,10 +44,11 @@ const BLOCKED_IN_CHAT = new Set([
   "pause", "debug", "skin", "funOptions", "toggleMode",
   "hotbar1", "hotbar2", "hotbar3", "hotbar4", "hotbar5",
   "hotbar6", "hotbar7", "hotbar8", "hotbar9",
+  "emote", "ping", "scoreboard",
 ]);
 
 /** Actions held continuously (movement + tab overlay) */
-const HELD_ACTIONS = new Set(["moveLeft", "moveRight", "jump"]);
+const HELD_ACTIONS = new Set(["moveLeft", "moveRight", "jump", "scoreboard"]);
 
 /** Pretty labels for actions (FR) */
 export const ACTION_LABELS = {
@@ -68,14 +72,17 @@ export const ACTION_LABELS = {
   hotbar7:     "Slot 7",
   hotbar8:     "Slot 8",
   hotbar9:     "Slot 9",
+  emote:       "Emotes",
+  ping:        "Placer un marqueur",
+  scoreboard:  "Tableau des scores",
 };
 
 /** Action categories for the keybind UI */
 export const ACTION_CATEGORIES = {
   "Mouvement": ["moveLeft", "moveRight", "jump"],
   "Combat & Objets": ["hotbar1", "hotbar2", "hotbar3", "hotbar4", "hotbar5", "hotbar6", "hotbar7", "hotbar8", "hotbar9", "drop"],
-  "Interface": ["inventory", "pause", "debug", "skin", "funOptions", "toggleMode"],
-  "Social": ["chat"],
+  "Interface": ["inventory", "pause", "debug", "skin", "funOptions", "toggleMode", "scoreboard"],
+  "Social": ["chat", "emote", "ping"],
 };
 
 /** Pretty label for a key code */

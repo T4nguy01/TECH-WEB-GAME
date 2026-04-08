@@ -57,6 +57,18 @@ const ui = new UI({
   selectedHintEl: document.getElementById("selectedHint"),
   inventoryItemNameEl: document.getElementById("selectedItemLabel"),
   inventoryItemDescEl: document.getElementById("selectedItemHint"),
+  // --- Multiplayer Elements ---
+  emoteWheelEl: document.getElementById("emoteWheel"),
+  scoreboardOverlayEl: document.getElementById("scoreboardOverlay"),
+  scoreboardBodyEl: document.getElementById("scoreboardBody"),
+  killFeedEl: document.getElementById("killFeed"),
+  tradeOverlayEl: document.getElementById("tradeOverlay"),
+  tradePartnerNameEl: document.getElementById("tradePartnerName"),
+  tradeLocalGridEl: document.getElementById("tradeLocalGrid"),
+  tradeRemoteGridEl: document.getElementById("tradeRemoteGrid"),
+  tradeStatusEl: document.getElementById("tradeStatus"),
+  tradeConfirmEl: document.getElementById("tradeConfirm"),
+  tradeCancelEl: document.getElementById("tradeCancel"),
   inputManager,
 });
 

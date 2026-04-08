@@ -398,8 +398,8 @@ export class Renderer {
       }
     }
 
-    this._drawLighting(ctx, w, h, camX, camY, players, x0, y0, x1, y1);
-    this._drawVignette(ctx, w, h);
+    // this._drawLighting(ctx, w, h, camX, camY, players, x0, y0, x1, y1); // Removed to fix black hole artifact
+    // this._drawVignette(ctx, w, h); // Removed as requested
 
     // Aim highlight
     if (this.aimBlock && this.world.inBounds(this.aimBlock.x, this.aimBlock.y)) {
@@ -586,10 +586,12 @@ export class Renderer {
     // Dynamic Scarf / Cape
     this._drawScarf(ctx, x, y, player, skin, time);
 
-    // Outline / Border
+    // Outline / Border removed as requested
+    /*
     ctx.fillStyle = rainbow;
     this._roundRect(ctx, x - 1, y - 1, PLAYER_W + 2, PLAYER_H + 2, 6);
     ctx.fill();
+    */
 
     // Hair / Head
     ctx.fillStyle = hair;
@@ -796,48 +798,8 @@ export class Renderer {
   }
 
   _drawLighting(ctx, w, h, camX, camY, players, x0, y0, x1, y1) {
-    // 1. Draw Darkness Overlay
-    ctx.fillStyle = "rgba(10, 15, 30, 0.4)"; 
-    ctx.globalCompositeOperation = "multiply";
-    ctx.fillRect(0, 0, w, h);
-    ctx.globalCompositeOperation = "source-over";
-
-    // 2. Erase darkness (destination-out) using cached flare
-    if (!this._flareCache) {
-      const fcv = document.createElement("canvas");
-      fcv.width = 256; fcv.height = 256;
-      const fctx = fcv.getContext("2d");
-      const flareGrad = fctx.createRadialGradient(128, 128, 10, 128, 128, 128);
-      flareGrad.addColorStop(0, "rgba(255, 255, 255, 1)");
-      flareGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
-      fctx.fillStyle = flareGrad;
-      fctx.fillRect(0, 0, 256, 256);
-      this._flareCache = fcv;
-    }
-
-    ctx.save();
-    ctx.globalCompositeOperation = "destination-out";
-    
-    // Player light
-    for (const p of players) {
-      const psx = p.x - camX;
-      const psy = p.y - camY;
-      ctx.drawImage(this._flareCache, psx - 120, psy - 120, 240, 240);
-    }
-
-    // Ore lights (limit distance)
-    for (let y = y0; y <= y1; y++) {
-      for (let x = x0; x <= x1; x++) {
-        const type = this.world.get(x, y);
-        if (type === BlockTypes.ORE_COAL || type === BlockTypes.ORE_IRON) {
-           const osx = x * TILE_SIZE - camX + TILE_SIZE/2;
-           const osy = y * TILE_SIZE - camY + TILE_SIZE/2;
-           ctx.globalAlpha = 0.45;
-           ctx.drawImage(this._flareCache, osx - 30, osy - 30, 60, 60);
-        }
-      }
-    }
-    ctx.restore();
+    // This function is now a no-op to prevent the "black spot" artifact
+    // caused by erasing the world with destination-out when darkness is disabled.
   }
 
   _drawGodRays(ctx, w, h, camX) {

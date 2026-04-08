@@ -320,6 +320,66 @@
         </div>
       </div>
 
+      <!-- ═══════ Emote Wheel ═══════ -->
+      <div id="emoteWheel" class="overlay hidden" aria-label="Roue des emotes">
+        <div class="emoteWheelContent">
+          <div class="emoteItem" data-emote="👋" title="Salut !">👋</div>
+          <div class="emoteItem" data-emote="😂" title="LOL">😂</div>
+          <div class="emoteItem" data-emote="💀" title="RIP">💀</div>
+          <div class="emoteItem" data-emote="❤️" title="GG">❤️</div>
+          <div class="emoteItem" data-emote="🔥" title="On fire">🔥</div>
+          <div class="emoteItem" data-emote="😤" title="Grrr">😤</div>
+        </div>
+      </div>
+
+      <!-- ═══════ Scoreboard Overlay ═══════ -->
+      <div id="scoreboardOverlay" class="overlay scoreboardOverlay hidden" aria-label="Tableau des scores">
+        <div class="dialog scoreboardDialog" role="dialog" aria-modal="true" aria-labelledby="scoreboardTitle">
+          <div class="dialogHeader">
+            <div id="scoreboardTitle" class="dialogTitle">🏆 Tableau des scores</div>
+          </div>
+          <table class="scoreboardTable">
+            <thead>
+              <tr>
+                <th>Joueur</th>
+                <th>Kills</th>
+                <th>Morts</th>
+                <th>Blocs</th>
+              </tr>
+            </thead>
+            <tbody id="scoreboardBody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════ Kill Feed ═══════ -->
+      <div id="killFeed" class="killFeed"></div>
+
+      <!-- ═══════ Trade Overlay ═══════ -->
+      <div id="tradeOverlay" class="overlay hidden" aria-label="Échange">
+        <div class="dialog tradeDialog" role="dialog" aria-modal="true" aria-labelledby="tradeTitle">
+          <div class="dialogHeader">
+            <div id="tradeTitle" class="dialogTitle">🤝 Échange avec <span id="tradePartnerName">...</span></div>
+          </div>
+          <div class="tradePane">
+            <div class="tradeSide">
+              <div class="panelLabel">Tes objets</div>
+              <div id="tradeLocalGrid" class="inventoryGrid"></div>
+            </div>
+            <div class="tradeSide">
+              <div class="panelLabel">Ses objets</div>
+              <div id="tradeRemoteGrid" class="inventoryGrid"></div>
+            </div>
+          </div>
+          <div class="tradeActions">
+            <div id="tradeStatus" class="tradeStatus">En attente...</div>
+            <button id="tradeConfirm" class="btn btnPrimary" type="button">Confirmer</button>
+            <button id="tradeCancel" class="btn" type="button">Annuler</button>
+          </div>
+        </div>
+      </div>
+
       <section class="chat hidden" aria-hidden="true"></section>
     </div>
 
