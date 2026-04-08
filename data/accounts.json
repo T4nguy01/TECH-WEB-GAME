@@ -8,11 +8,11 @@
       "salt": "377ed1ef43910981d5c28d38843afc61",
       "hash": "5325da10e1f0213698561656dc5e1c521ae4f7c99d8eba16ff476bc3c58a775f",
       "createdAt": 1775632123779,
-      "skin": "ember",
+      "skin": "classic",
       "inventory": {
         "size": 9,
         "hotbarSize": 9,
-        "selectedSlot": 0,
+        "selectedSlot": 2,
         "slots": [
           {
             "itemType": "tool:pickaxe",
@@ -20,15 +20,15 @@
           },
           {
             "itemType": "block:stone",
-            "count": 99
+            "count": 97
           },
           {
             "itemType": "block:grass",
-            "count": 99
+            "count": 93
           },
           {
             "itemType": "block:stone",
-            "count": 99
+            "count": 97
           },
           {
             "itemType": "block:stone",
@@ -36,17 +36,20 @@
           },
           {
             "itemType": "block:dirt",
-            "count": 45
+            "count": 46
           },
           {
             "itemType": "block:grass",
-            "count": 25
+            "count": 28
           },
           {
             "itemType": "block:stone",
             "count": 6
           },
-          null
+          {
+            "itemType": "block:wood",
+            "count": 4
+          }
         ]
       },
       "mode": "survival"
