@@ -10,5 +10,7 @@ Thumbs.db
 # Node
 node_modules/
 
-# Local auth secret
+# Local data
 data/auth_secret.txt
+data/world.json
+data/accounts.json

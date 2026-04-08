@@ -19,8 +19,9 @@ export class Renderer {
     this.particles = [];
     this.smokes = [];
     this.funOptions = { sparkles: true, disco: false, giantHead: false, jumpBurst: false };
-    this._shake = null;
     this._lastRenderMs = performance.now();
+    this._bgSeed = Math.random();
+    this._vignette = null;
 
     window.addEventListener("resize", () => this._resizeToCSS());
     this._resizeToCSS();
@@ -229,10 +230,12 @@ export class Renderer {
     for (const p of this.particles) {
       const sx = p.x - this.camera.x;
       const sy = p.y - this.camera.y;
+      const alpha = Math.max(0, Math.min(1, p.life / 0.8));
       ctx.fillStyle = p.color;
-      ctx.globalAlpha = Math.max(0, Math.min(1, p.life / 0.8));
+      ctx.globalAlpha = alpha;
+      const size = (2 + alpha * 2.5) * (1 + Math.sin(performance.now() * 0.01) * 0.2);
       ctx.beginPath();
-      ctx.arc(sx, sy, 2 + ctx.globalAlpha * 2, 0, Math.PI * 2);
+      ctx.arc(sx, sy, size, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -293,8 +296,6 @@ export class Renderer {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
-    if (!this.world) return;
-
     const local = players.find((p) => p.id === localId);
     if (local) {
       this._syncCamera(local);
@@ -304,6 +305,10 @@ export class Renderer {
     const camX = this.camera.x + shake.x;
     const camY = this.camera.y + shake.y;
 
+    this._drawBackground(ctx, w, h, camX, camY);
+
+    if (!this.world) return;
+
     const x0 = Math.max(0, Math.floor(camX / TILE_SIZE) - 1);
     const y0 = Math.max(0, Math.floor(camY / TILE_SIZE) - 1);
     const x1 = Math.min(this.world.w - 1, Math.ceil((camX + w) / TILE_SIZE) + 1);
@@ -311,15 +316,15 @@ export class Renderer {
 
     for (let y = y0; y <= y1; y += 1) {
       for (let x = x0; x <= x1; x += 1) {
-        const t = this.world.get(x, y);
-        const c = this._blockColor(t);
-        if (!c) continue;
+        const type = this.world.get(x, y);
+        if (type === BlockTypes.AIR) continue;
         const sx = x * TILE_SIZE - camX;
         const sy = y * TILE_SIZE - camY;
-        ctx.fillStyle = c;
-        ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
+        this._drawBlock(ctx, sx, sy, x, y, type);
       }
     }
+
+    this._drawVignette(ctx, w, h);
 
     // Aim highlight
     if (this.aimBlock && this.world.inBounds(this.aimBlock.x, this.aimBlock.y)) {
@@ -335,11 +340,22 @@ export class Renderer {
       const bx = this.breakDamage.x * TILE_SIZE - camX;
       const by = this.breakDamage.y * TILE_SIZE - camY;
       const p = Math.max(0, Math.min(1, this.breakDamage.progress));
-      ctx.fillStyle = `rgba(255, 77, 109, ${0.12 + p * 0.22})`;
+      
+      // Cracks overlay
+      ctx.strokeStyle = "rgba(0,0,0,0.65)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      const seed = this.breakDamage.x * 123 + this.breakDamage.y * 456;
+      for (let i = 0; i < 4; i++) {
+          const angle = (seed + i * 90) * (Math.PI / 180);
+          const r = 4 + p * 10;
+          ctx.moveTo(bx + TILE_SIZE/2, by + TILE_SIZE/2);
+          ctx.lineTo(bx + TILE_SIZE/2 + Math.cos(angle) * r, by + TILE_SIZE/2 + Math.sin(angle) * r);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.05 + p * 0.15})`;
       ctx.fillRect(bx, by, TILE_SIZE, TILE_SIZE);
-      ctx.strokeStyle = `rgba(255, 77, 109, ${0.3 + p * 0.5})`;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(bx + 2, by + 2, TILE_SIZE - 4, TILE_SIZE - 4);
     }
 
     this._drawParticles(ctx);
@@ -413,7 +429,18 @@ export class Renderer {
       ctx.fillStyle = "rgba(10,15,28,0.72)";
       ctx.strokeStyle = "rgba(255,255,255,0.14)";
       ctx.lineWidth = 1;
-      this._roundRect(ctx, sx - 12, sy - 12, 24, 24, 6);
+
+      // Inner glow
+      const itemGrad = ctx.createRadialGradient(sx, sy, 2, sx, sy, 14);
+      itemGrad.addColorStop(0, "rgba(139, 123, 255, 0.15)");
+      itemGrad.addColorStop(1, "rgba(139, 123, 255, 0)");
+      ctx.fillStyle = itemGrad;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(10,15,28,0.8)";
+      this._roundRect(ctx, sx - 12, sy - 12, 24, 24, 8);
       ctx.fill();
       ctx.stroke();
 
@@ -435,8 +462,26 @@ export class Renderer {
 
   _drawPlayer(ctx, sx, sy, player, isLocal) {
     const skin = skinById(player.skin);
-    const x = Math.round(sx - PLAYER_W * 0.5);
-    const y = Math.round(sy - PLAYER_H);
+    const time = performance.now() * 0.001;
+    
+    // Animation states
+    const isMoving = Math.abs(player.vx || 0) > 20;
+    const breathe = Math.sin(time * 3) * 0.5 + 0.5; // 0 to 1
+    const walk = isMoving ? Math.sin(time * 15) : 0;
+    
+    ctx.save();
+    ctx.translate(sx, sy);
+    
+    // Tilt when moving
+    if (isMoving) {
+        ctx.rotate(player.vx * 0.0002);
+    }
+    
+    // Slight squashing based on breathing
+    ctx.scale(1 + breathe * 0.02, 1 - breathe * 0.02);
+
+    const x = -PLAYER_W * 0.5;
+    const y = -PLAYER_H;
     const outline = skin.outline;
     const body = skin.body;
     const accent = skin.accent;
@@ -446,25 +491,39 @@ export class Renderer {
     const giantHead = isLocal && this.funOptions.giantHead;
     const rainbow = disco ? `hsl(${Math.floor(performance.now() * 0.1) % 360} 85% 65%)` : outline;
 
+    // Outline / Border
     ctx.fillStyle = rainbow;
-    ctx.fillRect(x - 1, y - 1, PLAYER_W + 2, PLAYER_H + 2);
+    this._roundRect(ctx, x - 1, y - 1, PLAYER_W + 2, PLAYER_H + 2, 6);
+    ctx.fill();
 
+    // Hair / Head
     ctx.fillStyle = hair;
-    ctx.fillRect(x + 1, y + 1, PLAYER_W - 2, giantHead ? 10 : 7);
+    this._roundRect(ctx, x + 1, y + 1, PLAYER_W - 2, giantHead ? 10 : 7, 4);
+    ctx.fill();
 
+    // Body
     ctx.fillStyle = body;
     ctx.fillRect(x + 1, y + (giantHead ? 10 : 7), PLAYER_W - 2, giantHead ? 15 : 12);
 
+    // Legs / Accent
     ctx.fillStyle = accent;
+    const legOffset = walk * 2;
     ctx.fillRect(x + 1, y + (giantHead ? 25 : 19), PLAYER_W - 2, giantHead ? 10 : 8);
 
-    ctx.fillStyle = isLocal ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.08)";
+    // Details / Shine
+    ctx.fillStyle = isLocal ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)";
     ctx.fillRect(x + 3, y + (giantHead ? 13 : 9), PLAYER_W - 6, 2);
     ctx.fillRect(x + 3, y + (giantHead ? 28 : 22), PLAYER_W - 6, 2);
 
+    // Eyes
     ctx.fillStyle = disco ? `hsl(${Math.floor(performance.now() * 0.15) % 360} 90% 72%)` : skin.namePlate || "rgba(255,255,255,0.9)";
-    ctx.fillRect(x + 4, y + 4, 2, 2);
-    ctx.fillRect(x + PLAYER_W - 6, y + 4, 2, 2);
+    const eyeBlink = Math.sin(time * 0.5) > 0.98 ? 0 : 2;
+    if (eyeBlink > 0) {
+        ctx.fillRect(x + 4, y + 4, 3, eyeBlink);
+        ctx.fillRect(x + PLAYER_W - 7, y + 4, 3, eyeBlink);
+    }
+    
+    ctx.restore();
   }
 
   _drawBubble(ctx, x, y, text) {
@@ -527,5 +586,126 @@ export class Renderer {
     ctx.arcTo(x, y + h, x, y, rr);
     ctx.arcTo(x, y, x + w, y, rr);
     ctx.closePath();
+  }
+
+  _drawBlock(ctx, sx, sy, bx, by, type) {
+    const baseColor = this._blockColor(type);
+    if (!baseColor) return;
+
+    // Base Fill
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(sx, sy, TILE_SIZE, TILE_SIZE);
+
+    // Texture Pattern
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = "#ffffff";
+    if (type === BlockTypes.STONE || type === BlockTypes.ORE_COAL || type === BlockTypes.ORE_IRON) {
+      // Noise / Crackle for stone
+      const noise = (Math.sin(bx * 13 + by * 37) * 0.5 + 0.5);
+      if (noise > 0.7) ctx.fillRect(sx + 2, sy + 3, 4, 1);
+      if (noise < 0.3) ctx.fillRect(sx + 8, sy + 10, 2, 2);
+    } else if (type === BlockTypes.GRASS) {
+      // Blade shapes
+      ctx.fillRect(sx + 4, sy + 2, 1, 3);
+      ctx.fillRect(sx + 10, sy + 1, 1, 4);
+    } else if (type === BlockTypes.DIRT) {
+      // Specks
+      ctx.fillRect(sx + 3, sy + 5, 2, 1);
+      ctx.fillRect(sx + 11, sy + 9, 1, 2);
+    }
+    ctx.globalAlpha = 1.0;
+
+    // Top Highlight / Shine
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    ctx.fillRect(sx, sy, TILE_SIZE, 1);
+    ctx.fillRect(sx, sy, 1, TILE_SIZE);
+
+    // Ambient Occlusion (Shadows from neighbors)
+    const neighbors = [
+      { x: 0, y: -1, code: 1 }, // T
+      { x: -1, y: 0, code: 2 }, // L
+    ];
+    
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    if (this._isSolid(bx, by - 1)) ctx.fillRect(sx, sy, TILE_SIZE, 3); // Top shadow
+    if (this._isSolid(bx - 1, by)) ctx.fillRect(sx, sy, 3, TILE_SIZE); // Left shadow
+    
+    // Smooth corners
+    if (this._isSolid(bx - 1, by - 1) && !this._isSolid(bx, by - 1) && !this._isSolid(bx - 1, by)) {
+      ctx.fillRect(sx, sy, 4, 4);
+    }
+
+    // Material specific overlays
+    if (type === BlockTypes.ORE_COAL) {
+      ctx.fillStyle = "#111111";
+      ctx.fillRect(sx + 4, sy + 4, 3, 3);
+      ctx.fillRect(sx + 10, sy + 8, 2, 2);
+    } else if (type === BlockTypes.ORE_IRON) {
+      ctx.fillStyle = "#e8d0b0";
+      ctx.fillRect(sx + 5, sy + 3, 4, 2);
+      ctx.fillRect(sx + 2, sy + 10, 3, 3);
+    }
+  }
+
+  _isSolid(x, y) {
+    if (!this.world) return false;
+    return this.world.get(x, y) !== BlockTypes.AIR;
+  }
+
+  _drawBackground(ctx, w, h, camX, camY) {
+    const time = performance.now() * 0.0001;
+    
+    // Layer 1: Distant Mountains (Very slow parallax)
+    this._drawParallaxLayer(ctx, w, h, camX * 0.05, camY * 0.02, 160, "rgba(20, 25, 45, 0.4)", 0.4);
+    
+    // Layer 2: Mid Hills (Medium parallax)
+    this._drawParallaxLayer(ctx, w, h, camX * 0.15, camY * 0.05, 120, "rgba(30, 40, 70, 0.3)", 0.6);
+    
+    // Layer 3: Nearer Details (Faster parallax)
+    this._drawParallaxLayer(ctx, w, h, camX * 0.3, camY * 0.1, 80, "rgba(40, 55, 95, 0.2)", 0.8);
+
+    // Clouds
+    ctx.globalAlpha = 0.15;
+    const cloudColor = "rgba(255,255,255,0.4)";
+    for (let i = 0; i < 5; i++) {
+        const offset = i * 400 + time * 1000 * (0.5 + i * 0.2);
+        const cx = (offset % (w + 400)) - 200;
+        const cy = 100 + Math.sin(time + i) * 50;
+        this._drawCloud(ctx, cx, cy, 60 + i * 10, cloudColor);
+    }
+    ctx.globalAlpha = 1.0;
+  }
+
+  _drawParallaxLayer(ctx, w, h, offX, offY, height, color, scale) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    for (let x = 0; x <= w; x += 40) {
+      const worldX = x + offX;
+      const noise = Math.sin(worldX * 0.005 * scale) * 40 + Math.sin(worldX * 0.012 * scale) * 20;
+      const py = h - height - noise - offY * 0.5;
+      ctx.lineTo(x, py);
+    }
+    ctx.lineTo(w, h);
+    ctx.fill();
+  }
+
+  _drawCloud(ctx, x, y, size, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.arc(x + size * 0.6, y - size * 0.3, size * 0.8, 0, Math.PI * 2);
+    ctx.arc(x + size * 1.2, y, size * 0.9, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  _drawVignette(ctx, w, h) {
+    if (!this._vignette || this._vignette.w !== w || this._vignette.h !== h) {
+      this._vignette = { w, h, grad: ctx.createRadialGradient(w/2, h/2, w/4, w/2, h/2, w*0.8) };
+      this._vignette.grad.addColorStop(0, "rgba(0,0,0,0)");
+      this._vignette.grad.addColorStop(1, "rgba(0,0,0,0.35)");
+    }
+    ctx.fillStyle = this._vignette.grad;
+    ctx.fillRect(0, 0, w, h);
   }
 }
