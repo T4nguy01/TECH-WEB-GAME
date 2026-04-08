@@ -149,29 +149,40 @@
       <div id="inventoryOverlay" class="overlay hidden" aria-label="Inventaire">
         <div class="dialog inventoryDialog" role="dialog" aria-modal="true" aria-labelledby="inventoryTitle">
           <div class="dialogHeader">
-            <div id="inventoryTitle" class="dialogTitle">Inventaire</div>
-            <div id="inventorySub" class="dialogSub">Vue agrandie pour lire plus vite les objets, les quantités et les recettes.</div>
+            <div id="inventoryTitle" class="dialogTitle">Inventaire & Fabrication</div>
+            <div id="inventorySub" class="dialogSub">Gère tes objets et crée de nouveaux outils.</div>
           </div>
 
           <div class="inventoryPane">
-            <section class="inventoryColumn" aria-label="Inventaire du joueur">
-              <div class="panelLabel">Sac</div>
-              <div id="inventoryGrid" class="inventoryGrid"></div>
-            </section>
+            <!-- Left: Storage -->
+            <div class="inventoryMain">
+              <section class="inventoryColumn" aria-label="Sac à dos">
+                <div class="panelLabel">Sac à dos</div>
+                <div id="inventoryGrid" class="inventoryGrid"></div>
+              </section>
 
-            <section id="chestSection" class="inventoryColumn hidden" aria-label="Coffre">
-              <div class="panelLabel">Coffre</div>
-              <div id="chestGrid" class="inventoryGrid"></div>
-            </section>
+              <section id="chestSection" class="inventoryColumn hidden" aria-label="Coffre">
+                <div class="panelLabel">Coffre</div>
+                <div id="chestGrid" class="inventoryGrid"></div>
+              </section>
 
-            <section class="inventoryColumn" aria-label="Fabrication">
-              <div class="panelLabel">Fabrication</div>
+              <div class="inventoryActions">
+                <div class="selectedItemInfo">
+                  <div id="selectedItemLabel" class="selectedItemName">Emplacement vide</div>
+                  <div id="selectedItemHint" class="selectedItemDesc">Sélectionne un objet pour voir ses détails.</div>
+                </div>
+                <button id="inventoryDrop" class="btn btnDanger" type="button" title="Jeter l'objet (J)">Jeter</button>
+              </div>
+            </div>
+
+            <!-- Right: Crafting -->
+            <section class="inventorySide" aria-label="Fabrication">
+              <div class="panelLabel">Recettes</div>
               <div id="craftList" class="craftList"></div>
             </section>
           </div>
 
-          <div class="row">
-            <button id="inventoryDrop" class="btn btnPrimary" type="button" title="Clique ici ou appuie sur J pour jeter l'objet">Jeter l'objet</button>
+          <div class="dialogFooter">
             <button id="inventoryClose" class="btn" type="button">Fermer</button>
           </div>
         </div>

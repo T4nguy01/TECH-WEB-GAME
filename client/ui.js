@@ -42,6 +42,10 @@ export class UI {
     keybindResetEl,
     keybindCloseEl,
     keybindButtonEl,
+    selectedItemEl,
+    selectedHintEl,
+    inventoryItemNameEl,
+    inventoryItemDescEl,
     // InputManager reference
     inputManager,
   }) {
@@ -81,6 +85,10 @@ export class UI {
     this.keybindResetEl = keybindResetEl;
     this.keybindCloseEl = keybindCloseEl;
     this.keybindButtonEl = keybindButtonEl;
+    this.selectedItemEl = selectedItemEl;
+    this.selectedHintEl = selectedHintEl;
+    this.inventoryItemNameEl = inventoryItemNameEl;
+    this.inventoryItemDescEl = inventoryItemDescEl;
     this.inputManager = inputManager;
 
     // Callbacks
@@ -840,10 +848,35 @@ export class UI {
   // RENDERING
   // ═══════════════════════════════════════
 
+  _getItemVisual(itemType) {
+    if (!itemType) return { char: "", color: "transparent" };
+    if (itemType.startsWith("block:dirt")) return { char: "T", color: "#8B5E3C" };
+    if (itemType.startsWith("block:stone")) return { char: "P", color: "#7A7A7A" };
+    if (itemType.startsWith("block:grass")) return { char: "H", color: "#4CAF50" };
+    if (itemType.startsWith("block:wood")) return { char: "B", color: "#5D4037" };
+    if (itemType.startsWith("block:chest")) return { char: "C", color: "#FFA000" };
+    if (itemType.startsWith("tool:")) return { char: "⚒", color: "#8b7bff" };
+    if (itemType.startsWith("weapon:grenade")) return { char: "💣", color: "#ff4d6d" };
+    if (itemType.startsWith("weapon:smoke")) return { char: "💨", color: "#B0BEC5" };
+    if (itemType.startsWith("weapon:confetti")) return { char: "🎉", color: "#FFEB3B" };
+    if (itemType.startsWith("weapon:stink")) return { char: "🤢", color: "#8BC34A" };
+    if (itemType.startsWith("weapon:banana")) return { char: "🍌", color: "#FFD600" };
+    if (itemType.startsWith("weapon:party")) return { char: "🚀", color: "#E91E63" };
+    if (itemType.startsWith("weapon:bazooka")) return { char: "🔫", color: "#455A64" };
+    if (itemType.startsWith("weapon:slime")) return { char: "🦠", color: "#4CAF50" };
+    if (itemType.startsWith("weapon:toilet")) return { char: "🧻", color: "#FFF" };
+    if (itemType.startsWith("weapon:rubber")) return { char: "🐥", color: "#FFD600" };
+    if (itemType.startsWith("weapon:disco")) return { char: "🪩", color: "#9C27B0" };
+    if (itemType.startsWith("material:iron")) return { char: "Fe", color: "#BDBDBD" };
+    if (itemType.startsWith("material:coal")) return { char: "C", color: "#212121" };
+    return { char: "?", color: "#444" };
+  }
+
   _renderInventoryGrid(containerEl, inv, scope = "player") {
     if (!containerEl) return;
     containerEl.innerHTML = "";
     const slots = scope === "chest" ? normalizeInventory(inv).slots : normalizePlayerInventory(inv).slots;
+    
     for (let i = 0; i < slots.length; i += 1) {
       const slot = slots[i];
       const el = document.createElement("button");
@@ -853,21 +886,28 @@ export class UI {
       el.dataset.slotScope = scope;
       el.draggable = false;
 
-      const index = document.createElement("span");
-      index.className = "invIndex";
-      index.textContent = String(i + 1);
+      // Index badge (1-9)
+      if (scope === "player" && i < 9) {
+        const index = document.createElement("span");
+        index.className = "invIndex";
+        index.textContent = String(i + 1);
+        el.appendChild(index);
+      }
 
-      const name = document.createElement("span");
-      name.className = "invName";
-      name.textContent = slot ? slotLabel(slot) : "Vide";
+      if (slot) {
+        const visual = this._getItemVisual(slot.itemType);
+        const icon = document.createElement("div");
+        icon.className = "invIcon";
+        icon.textContent = visual.char;
+        icon.style.color = visual.color;
+        el.appendChild(icon);
 
-      const count = document.createElement("span");
-      count.className = "invCount";
-      count.textContent = slot ? `x${slot.count}` : "";
+        const count = document.createElement("span");
+        count.className = "invCount";
+        count.textContent = slot.count;
+        el.appendChild(count);
+      }
 
-      el.appendChild(index);
-      el.appendChild(name);
-      el.appendChild(count);
       el.addEventListener("pointerdown", (e) => {
         if (!this.isInventoryOpen()) return;
         if (e.button !== 0) return;
@@ -895,15 +935,12 @@ export class UI {
       this._renderCraftList();
     }
 
-    if (this.selectedItemEl) {
-      const slot = this._inventory.slots[this._inventory.selectedSlot];
-      this.selectedItemEl.textContent = slot ? `${slotLabel(slot)} x${slot.count}` : "Emplacement vide";
+    const selectedSlot = this._inventory.slots[this._inventory.selectedSlot];
+    if (this.inventoryItemNameEl) {
+      this.inventoryItemNameEl.textContent = selectedSlot ? nameForItem(selectedSlot.itemType) : "Emplacement vide";
     }
-
-    if (this.selectedHintEl) {
-      this.selectedHintEl.textContent = this._inventory.slots[this._inventory.selectedSlot]
-        ? "Clique un emplacement pour le sélectionner."
-        : "Aucun objet sélectionné";
+    if (this.inventoryItemDescEl) {
+      this.inventoryItemDescEl.textContent = selectedSlot ? hintForItem(selectedSlot.itemType) : "Sélectionne un objet pour voir ses détails.";
     }
 
     if (this.inventoryDropEl) {
@@ -943,9 +980,8 @@ export class UI {
           <div class="craftTitle">${recipe.label}</div>
           <div class="craftStatus ${ready ? "ready" : "locked"}">${ready ? "prêt" : "bloqué"}</div>
         </div>
-        <div class="craftReq"><strong>Requiert :</strong> ${this._formatRecipeInputs(recipe)}</div>
-        <div class="craftOut"><strong>Produit :</strong> ${this._formatRecipeOutput(recipe)}</div>
-        <div class="craftReq">${recipe.description || ""}</div>
+        <div class="craftOut">${this._formatRecipeOutput(recipe)}</div>
+        <div class="craftReq">Requis : ${this._formatRecipeInputs(recipe)}</div>
       `;
       button.addEventListener("click", () => {
         if (!ready) return;

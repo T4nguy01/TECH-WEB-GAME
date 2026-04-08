@@ -53,6 +53,10 @@ const ui = new UI({
   keybindResetEl: document.getElementById("keybindReset"),
   keybindCloseEl: document.getElementById("keybindClose"),
   keybindButtonEl: document.getElementById("keybindButton"),
+  selectedItemEl: document.getElementById("selectedItem"),
+  selectedHintEl: document.getElementById("selectedHint"),
+  inventoryItemNameEl: document.getElementById("selectedItemLabel"),
+  inventoryItemDescEl: document.getElementById("selectedItemHint"),
   inputManager,
 });
 

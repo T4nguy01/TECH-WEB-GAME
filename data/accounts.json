@@ -12,7 +12,7 @@
       "inventory": {
         "size": 9,
         "hotbarSize": 9,
-        "selectedSlot": 5,
+        "selectedSlot": 0,
         "slots": [
           {
             "itemType": "tool:pickaxe",
@@ -52,7 +52,7 @@
           }
         ]
       },
-      "mode": "survival"
+      "mode": "creative"
     },
     {
       "id": "ab30da47-f9aa-4390-9222-7db0ba53ef24",
