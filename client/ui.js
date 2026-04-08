@@ -2,6 +2,7 @@ import { canCraft } from "./crafting.js";
 import { labelForItem } from "./items.js";
 import { normalizeInventory, normalizePlayerInventory, slotLabel } from "./inventory.js";
 import { skinById } from "./skins.js";
+import { ACTION_LABELS, ACTION_CATEGORIES, prettyKey } from "./inputManager.js";
 
 const FUN_OPTIONS_KEY = "webgame_fun_options";
 
@@ -28,6 +29,21 @@ export class UI {
     inventoryDropEl,
     inventoryButtonEl,
     inventoryCloseEl,
+    // ── New elements ──
+    pauseOverlayEl,
+    pauseResumeEl,
+    pauseControlsEl,
+    pauseOptionsEl,
+    pauseSkinEl,
+    pauseDisconnectEl,
+    debugHudEl,
+    keybindOverlayEl,
+    keybindListEl,
+    keybindResetEl,
+    keybindCloseEl,
+    keybindButtonEl,
+    // InputManager reference
+    inputManager,
   }) {
     this.hotbarEl = hotbarEl;
     this.chatLogEl = chatLogEl;
@@ -51,6 +67,23 @@ export class UI {
     this.inventoryButtonEl = inventoryButtonEl;
     this.inventoryCloseEl = inventoryCloseEl;
 
+    // New elements
+    this.pauseOverlayEl = pauseOverlayEl;
+    this.pauseResumeEl = pauseResumeEl;
+    this.pauseControlsEl = pauseControlsEl;
+    this.pauseOptionsEl = pauseOptionsEl;
+    this.pauseSkinEl = pauseSkinEl;
+    this.pauseDisconnectEl = pauseDisconnectEl;
+
+    this.debugHudEl = debugHudEl;
+    this.keybindOverlayEl = keybindOverlayEl;
+    this.keybindListEl = keybindListEl;
+    this.keybindResetEl = keybindResetEl;
+    this.keybindCloseEl = keybindCloseEl;
+    this.keybindButtonEl = keybindButtonEl;
+    this.inputManager = inputManager;
+
+    // Callbacks
     this.onChatSend = null;
     this.onInventoryToggle = null;
     this.onHotbarSelect = null;
@@ -60,7 +93,10 @@ export class UI {
     this.onDropRequest = null;
     this.onInventorySwap = null;
     this.onInventoryTransfer = null;
+    this.onSkinOpen = null;
+    this.onDisconnect = null;
 
+    // State
     this._activeHotbar = 0;
     this._players = [];
     this._inventory = normalizePlayerInventory();
@@ -75,6 +111,8 @@ export class UI {
     this._dropTargetActive = false;
     this._chest = null;
     this._localHud = { health: 20, maxHealth: 20, itemLabel: "Emplacement vide", itemHint: "Aucun objet sélectionné" };
+    this._debugVisible = false;
+
 
     this.playerListEl = document.getElementById("playerList");
     this.playerCountEl = document.getElementById("playerCount");
@@ -87,9 +125,17 @@ export class UI {
     this._bindInventory();
     this._bindMode();
     this._bindFun();
+    this._bindPause();
+
+    this._bindDebug();
+    this._bindKeybind();
     this.setGameMode("survival");
     this.setFunOptions(this._funOptions);
   }
+
+  // ═══════════════════════════════════════
+  // HOTBAR
+  // ═══════════════════════════════════════
 
   initHotbar(n, items = null) {
     if (!this.hotbarEl) return;
@@ -128,6 +174,10 @@ export class UI {
     if (this.isInventoryOpen()) this._renderInventory();
   }
 
+  // ═══════════════════════════════════════
+  // CHAT (uses InputManager)
+  // ═══════════════════════════════════════
+
   isChatFocused() {
     return document.activeElement === this.chatInputEl;
   }
@@ -135,14 +185,21 @@ export class UI {
   _bindChat() {
     if (!this.chatFormEl || !this.chatInputEl) return;
 
-    window.addEventListener("keydown", (e) => {
-      const key = e.key.toLowerCase();
-      const overlay = document.getElementById("authOverlay");
-      if (overlay && !overlay.classList.contains("hidden")) return;
-      if (this.isChatFocused()) return;
-      if (key !== "enter" && key !== "t") return;
-      e.preventDefault();
-      this.chatInputEl.focus();
+    // Focus chat on Enter/T via InputManager
+    if (this.inputManager) {
+      this.inputManager.on("chat", () => {
+        if (this._anyOverlayOpen()) return;
+        if (this.isChatFocused()) return;
+        this.chatInputEl.focus();
+      });
+    }
+
+    // Track focus for InputManager context
+    this.chatInputEl.addEventListener("focus", () => {
+      this.inputManager?.setChatFocused(true);
+    });
+    this.chatInputEl.addEventListener("blur", () => {
+      this.inputManager?.setChatFocused(false);
     });
 
     this.chatFormEl.addEventListener("submit", (e) => {
@@ -154,6 +211,10 @@ export class UI {
       this.onChatSend?.(text);
     });
   }
+
+  // ═══════════════════════════════════════
+  // INVENTORY
+  // ═══════════════════════════════════════
 
   _bindInventory() {
     this.inventoryButtonEl?.addEventListener("click", () => this.toggleInventory());
@@ -168,66 +229,18 @@ export class UI {
     window.addEventListener("pointercancel", () => this.clearDrag());
     window.addEventListener("blur", () => this.clearDrag());
 
-    window.addEventListener("keydown", (e) => {
-      const key = e.key.toLowerCase();
-      const overlay = document.getElementById("authOverlay");
-      if (overlay && !overlay.classList.contains("hidden")) return;
-      if (this.isChatFocused()) return;
-      if (key === "j") {
-        e.preventDefault();
+    // InputManager bindings
+    if (this.inputManager) {
+      this.inputManager.on("inventory", () => {
+        if (this.isPauseOpen() || this.isKeybindOpen()) return;
+        this.toggleInventory();
+      });
+
+      this.inputManager.on("drop", () => {
+        if (this._anyOverlayOpen()) return;
         this.dropSelectedItem();
-        return;
-      }
-      if (key !== "i" && key !== "e" && key !== "escape") return;
-      if (key === "escape" && !this.isInventoryOpen()) return;
-      e.preventDefault();
-      if (key === "escape") this.closeInventory();
-      else this.toggleInventory();
-    });
-  }
-
-  _bindMode() {
-    this.modeButtonEl?.addEventListener("click", () => {
-      const next = this._gameMode === "creative" ? "survival" : "creative";
-      this.setGameMode(next);
-      this.onModeToggle?.(next);
-    });
-  }
-
-  _bindFun() {
-    this.funButtonEl?.addEventListener("click", () => this.toggleFunOptions());
-    this.funCloseEl?.addEventListener("click", () => this.closeFunOptions());
-    this.funOverlayEl?.addEventListener("click", (e) => {
-      if (e.target === this.funOverlayEl) this.closeFunOptions();
-    });
-
-    this.sparkleToggleEl?.addEventListener("change", () => {
-      this.setFunOptions({
-        ...this._funOptions,
-        sparkles: Boolean(this.sparkleToggleEl.checked),
       });
-    });
-
-    this.discoToggleEl?.addEventListener("change", () => {
-      this.setFunOptions({
-        ...this._funOptions,
-        disco: Boolean(this.discoToggleEl.checked),
-      });
-    });
-
-    this.giantHeadToggleEl?.addEventListener("change", () => {
-      this.setFunOptions({
-        ...this._funOptions,
-        giantHead: Boolean(this.giantHeadToggleEl.checked),
-      });
-    });
-
-    this.jumpBurstToggleEl?.addEventListener("change", () => {
-      this.setFunOptions({
-        ...this._funOptions,
-        jumpBurst: Boolean(this.jumpBurstToggleEl.checked),
-      });
-    });
+    }
   }
 
   isInventoryOpen() {
@@ -237,8 +250,10 @@ export class UI {
   toggleInventory(force) {
     const next = typeof force === "boolean" ? force : !this.isInventoryOpen();
     if (next) {
+      this._closeAllOverlays();
       this.inventoryOverlayEl?.classList.remove("hidden");
       this._renderInventory();
+      this._updateOverlayContext();
       this.onInventoryToggle?.(true);
     } else {
       this.closeInventory();
@@ -254,6 +269,7 @@ export class UI {
     this.inventoryOverlayEl.classList.add("hidden");
     this.clearDrag();
     this.setChest(null, { silent: true });
+    this._updateOverlayContext();
     this.onInventoryToggle?.(false);
   }
 
@@ -277,13 +293,40 @@ export class UI {
     this._renderInventory();
   }
 
+  // ═══════════════════════════════════════
+  // MODE
+  // ═══════════════════════════════════════
+
   setGameMode(mode) {
     this._gameMode = String(mode) === "creative" ? "creative" : "survival";
     if (this.modeButtonEl) {
-      this.modeButtonEl.textContent = this._gameMode === "creative" ? "mode: créatif" : "mode: survie";
+      this.modeButtonEl.textContent = this._gameMode === "creative" ? "⚔️ Créatif" : "⚔️ Survie";
       this.modeButtonEl.classList.toggle("ok", this._gameMode === "creative");
     }
   }
+
+  _bindMode() {
+    this.modeButtonEl?.addEventListener("click", () => {
+      this._toggleMode();
+    });
+
+    if (this.inputManager) {
+      this.inputManager.on("toggleMode", () => {
+        if (this._anyOverlayOpen()) return;
+        this._toggleMode();
+      });
+    }
+  }
+
+  _toggleMode() {
+    const next = this._gameMode === "creative" ? "survival" : "creative";
+    this.setGameMode(next);
+    this.onModeToggle?.(next);
+  }
+
+  // ═══════════════════════════════════════
+  // FUN OPTIONS
+  // ═══════════════════════════════════════
 
   _loadFunOptions() {
     try {
@@ -330,7 +373,9 @@ export class UI {
   toggleFunOptions(force) {
     const next = typeof force === "boolean" ? force : !this.isFunOptionsOpen();
     if (next) {
+      this._closeAllOverlays();
       this.funOverlayEl?.classList.remove("hidden");
+      this._updateOverlayContext();
     } else {
       this.closeFunOptions();
     }
@@ -338,7 +383,247 @@ export class UI {
 
   closeFunOptions() {
     this.funOverlayEl?.classList.add("hidden");
+    this._updateOverlayContext();
   }
+
+  _bindFun() {
+    this.funButtonEl?.addEventListener("click", () => this.toggleFunOptions());
+    this.funCloseEl?.addEventListener("click", () => this.closeFunOptions());
+    this.funOverlayEl?.addEventListener("click", (e) => {
+      if (e.target === this.funOverlayEl) this.closeFunOptions();
+    });
+
+    this.sparkleToggleEl?.addEventListener("change", () => {
+      this.setFunOptions({ ...this._funOptions, sparkles: Boolean(this.sparkleToggleEl.checked) });
+    });
+    this.discoToggleEl?.addEventListener("change", () => {
+      this.setFunOptions({ ...this._funOptions, disco: Boolean(this.discoToggleEl.checked) });
+    });
+    this.giantHeadToggleEl?.addEventListener("change", () => {
+      this.setFunOptions({ ...this._funOptions, giantHead: Boolean(this.giantHeadToggleEl.checked) });
+    });
+    this.jumpBurstToggleEl?.addEventListener("change", () => {
+      this.setFunOptions({ ...this._funOptions, jumpBurst: Boolean(this.jumpBurstToggleEl.checked) });
+    });
+
+    if (this.inputManager) {
+      this.inputManager.on("funOptions", () => {
+        if (this.isPauseOpen() || this.isKeybindOpen()) return;
+        this.toggleFunOptions();
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════
+  // PAUSE MENU
+  // ═══════════════════════════════════════
+
+  isPauseOpen() {
+    return !!this.pauseOverlayEl && !this.pauseOverlayEl.classList.contains("hidden");
+  }
+
+  openPause() {
+    this._closeAllOverlays();
+    this.pauseOverlayEl?.classList.remove("hidden");
+    this._updateOverlayContext();
+  }
+
+  closePause() {
+    this.pauseOverlayEl?.classList.add("hidden");
+    this._updateOverlayContext();
+  }
+
+  togglePause() {
+    if (this.isPauseOpen()) this.closePause();
+    else this.openPause();
+  }
+
+  _bindPause() {
+    this.pauseResumeEl?.addEventListener("click", () => this.closePause());
+    this.pauseControlsEl?.addEventListener("click", () => {
+      this.closePause();
+      this.openKeybindConfig();
+    });
+    this.pauseOptionsEl?.addEventListener("click", () => {
+      this.closePause();
+      this.toggleFunOptions(true);
+    });
+    this.pauseSkinEl?.addEventListener("click", () => {
+      this.closePause();
+      this.onSkinOpen?.();
+    });
+    this.pauseDisconnectEl?.addEventListener("click", () => {
+      this.onDisconnect?.();
+    });
+    this.pauseOverlayEl?.addEventListener("click", (e) => {
+      if (e.target === this.pauseOverlayEl) this.closePause();
+    });
+
+    if (this.inputManager) {
+      this.inputManager.on("pause", () => {
+        // Escape closes any open overlay, or opens pause
+        if (this.isKeybindOpen()) { this.closeKeybindConfig(); return; }
+        if (this.isFunOptionsOpen()) { this.closeFunOptions(); return; }
+        if (this.isInventoryOpen()) { this.closeInventory(); return; }
+        this.togglePause();
+      });
+
+      // Skin shortcut (F4)
+      this.inputManager.on("skin", () => {
+        if (this._anyOverlayOpen()) return;
+        this.onSkinOpen?.();
+      });
+    }
+  }
+
+
+
+  // ═══════════════════════════════════════
+  // DEBUG HUD
+  // ═══════════════════════════════════════
+
+  isDebugVisible() {
+    return this._debugVisible;
+  }
+
+  toggleDebug() {
+    this._debugVisible = !this._debugVisible;
+    this.debugHudEl?.classList.toggle("hidden", !this._debugVisible);
+  }
+
+  _bindDebug() {
+    if (!this.inputManager) return;
+    this.inputManager.on("debug", () => {
+      this.toggleDebug();
+    });
+  }
+
+  updateDebug({ fps, x, y, players, entities, particles }) {
+    if (!this._debugVisible) return;
+    const el = (id) => document.getElementById(id);
+    const set = (id, text) => { const e = el(id); if (e) e.textContent = text; };
+    set("debugFps", String(fps ?? "--"));
+    set("debugPos", `${(x ?? 0).toFixed(1)} , ${(y ?? 0).toFixed(1)}`);
+    set("debugChunk", `${Math.floor((x ?? 0) / 256)} , ${Math.floor((y ?? 0) / 256)}`);
+    set("debugPlayers", String(players ?? 0));
+    set("debugEntities", String(entities ?? 0));
+    set("debugParticles", String(particles ?? 0));
+  }
+
+  // ═══════════════════════════════════════
+  // KEYBIND CONFIG
+  // ═══════════════════════════════════════
+
+  isKeybindOpen() {
+    return !!this.keybindOverlayEl && !this.keybindOverlayEl.classList.contains("hidden");
+  }
+
+  openKeybindConfig() {
+    this._closeAllOverlays();
+    this.keybindOverlayEl?.classList.remove("hidden");
+    this._updateOverlayContext();
+    this._renderKeybindList();
+  }
+
+  closeKeybindConfig() {
+    this.keybindOverlayEl?.classList.add("hidden");
+    this.inputManager?.cancelRemap();
+    this._updateOverlayContext();
+  }
+
+  _bindKeybind() {
+    this.keybindButtonEl?.addEventListener("click", () => {
+      if (this.isKeybindOpen()) this.closeKeybindConfig();
+      else this.openKeybindConfig();
+    });
+    this.keybindCloseEl?.addEventListener("click", () => this.closeKeybindConfig());
+    this.keybindResetEl?.addEventListener("click", () => {
+      this.inputManager?.resetBindings();
+      this._renderKeybindList();
+    });
+    this.keybindOverlayEl?.addEventListener("click", (e) => {
+      if (e.target === this.keybindOverlayEl) this.closeKeybindConfig();
+    });
+  }
+
+  _renderKeybindList() {
+    if (!this.keybindListEl || !this.inputManager) return;
+    this.keybindListEl.innerHTML = "";
+
+    const bindings = this.inputManager.getBindings();
+
+    for (const [category, actions] of Object.entries(ACTION_CATEGORIES)) {
+      const catEl = document.createElement("div");
+      catEl.className = "keybindCategory";
+      catEl.textContent = category;
+      this.keybindListEl.appendChild(catEl);
+
+      for (const action of actions) {
+        const keys = bindings[action] || [];
+        const row = document.createElement("div");
+        row.className = "keybindRow";
+
+        const label = document.createElement("div");
+        label.className = "keybindLabel";
+        label.textContent = ACTION_LABELS[action] || action;
+
+        const keyBtn = document.createElement("button");
+        keyBtn.type = "button";
+        keyBtn.className = "keybindKey";
+        keyBtn.textContent = keys.map(prettyKey).join(" / ") || "—";
+        keyBtn.addEventListener("click", async () => {
+          keyBtn.classList.add("listening");
+          keyBtn.textContent = "...";
+          const result = await this.inputManager.startRemap(action);
+          keyBtn.classList.remove("listening");
+          if (result) {
+            keyBtn.textContent = prettyKey(result);
+          } else {
+            keyBtn.textContent = keys.map(prettyKey).join(" / ") || "—";
+          }
+          this._renderKeybindList();
+        });
+
+        const resetBtn = document.createElement("button");
+        resetBtn.type = "button";
+        resetBtn.className = "keybindReset";
+        resetBtn.textContent = "↺";
+        resetBtn.title = "Réinitialiser cette touche";
+        resetBtn.addEventListener("click", () => {
+          this.inputManager.resetBinding(action);
+          this._renderKeybindList();
+        });
+
+        row.appendChild(label);
+        row.appendChild(keyBtn);
+        row.appendChild(resetBtn);
+        this.keybindListEl.appendChild(row);
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════
+  // OVERLAY HELPERS
+  // ═══════════════════════════════════════
+
+  _anyOverlayOpen() {
+    return this.isInventoryOpen() || this.isFunOptionsOpen() || this.isPauseOpen() || this.isKeybindOpen();
+  }
+
+  _closeAllOverlays() {
+    if (this.isInventoryOpen()) this.closeInventory();
+    if (this.isFunOptionsOpen()) this.closeFunOptions();
+    if (this.isPauseOpen()) this.closePause();
+    if (this.isKeybindOpen()) this.closeKeybindConfig();
+  }
+
+  _updateOverlayContext() {
+    this.inputManager?.setOverlayOpen(this._anyOverlayOpen());
+  }
+
+  // ═══════════════════════════════════════
+  // CHEST
+  // ═══════════════════════════════════════
 
   setChest(chest, { silent = false } = {}) {
     if (!chest || !Number.isFinite(chest.x) || !Number.isFinite(chest.y) || !chest.inventory) {
@@ -374,6 +659,10 @@ export class UI {
     this._recipes = Array.isArray(recipes) ? recipes.slice() : [];
     this._renderInventory();
   }
+
+  // ═══════════════════════════════════════
+  // DRAG & DROP
+  // ═══════════════════════════════════════
 
   clearDrag() {
     this._setDraggingSlot(null);
@@ -547,6 +836,10 @@ export class UI {
     }
   }
 
+  // ═══════════════════════════════════════
+  // RENDERING
+  // ═══════════════════════════════════════
+
   _renderInventoryGrid(containerEl, inv, scope = "player") {
     if (!containerEl) return;
     containerEl.innerHTML = "";
@@ -673,6 +966,10 @@ export class UI {
     return `${recipe.output.count} ${labelForItem(recipe.output.itemType) || recipe.output.itemType}`;
   }
 
+  // ═══════════════════════════════════════
+  // CHAT & HUD
+  // ═══════════════════════════════════════
+
   addChatLine(text) {
     if (!this.chatLogEl) return;
     const line = document.createElement("div");
@@ -699,6 +996,7 @@ export class UI {
   }
 
   setPlayers(players, localId) {
+    this._localId = localId;
     const list = (players || [])
       .map((p) => ({
         id: String(p.id),
@@ -733,7 +1031,7 @@ export class UI {
       const left = document.createElement("div");
       left.style.display = "flex";
       left.style.alignItems = "center";
-      left.style.gap = "10px";
+      left.style.gap = "8px";
 
       const dot = document.createElement("div");
       dot.className = "playerDot";
@@ -766,5 +1064,8 @@ export class UI {
 
       this.playerListEl.appendChild(row);
     }
+
+    // Also update tab list if visible
+    if (this._tabVisible) this._renderTabPlayerList();
   }
 }

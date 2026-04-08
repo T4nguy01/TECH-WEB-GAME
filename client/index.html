@@ -19,17 +19,18 @@
       <header class="topbar">
         <div class="brandBlock">
           <div class="brand">TECH WEB GAME</div>
-          <div class="brandSub">Sandbox multijoueur 2D, serveur autoritaire, interface moderne.</div>
+          <div class="brandSub">Sandbox multijoueur 2D</div>
         </div>
 
         <div class="status">
-          <button id="skinButton" class="pill pillButton" type="button">apparence</button>
-          <button id="inventoryButton" class="pill pillButton" type="button">inventaire</button>
-          <button id="modeButton" class="pill pillButton" type="button">mode: survie</button>
-          <button id="funButton" class="pill pillButton" type="button">options rigolotes</button>
-          <span id="netStatus" class="pill">hors ligne</span>
-          <span id="fps" class="pill">fps : --</span>
-          <span id="pos" class="pill">x : -- y : --</span>
+          <button id="skinButton" class="pill pillButton" type="button" title="Changer de skin (F4)">🎨 Skin</button>
+          <button id="inventoryButton" class="pill pillButton" type="button" title="Ouvrir l'inventaire (I / E)">🎒 Sac</button>
+          <button id="modeButton" class="pill pillButton" type="button" title="Basculer créatif/survie (F6)">⚔️ Survie</button>
+          <button id="funButton" class="pill pillButton" type="button" title="Options visuelles (F5)">✨ Fun</button>
+          <button id="keybindButton" class="pill pillButton" type="button" title="Configurer les touches">⌨️ Touches</button>
+          <span id="netStatus" class="pill" title="État de la connexion">hors ligne</span>
+          <span id="fps" class="pill" title="Images par seconde">FPS : --</span>
+          <span id="pos" class="pill" title="Position du joueur">x : -- y : --</span>
         </div>
       </header>
 
@@ -38,12 +39,13 @@
           <div class="sceneHeader">
             <div class="sceneTitleWrap">
               <div class="sceneKicker">Vue du monde</div>
-              <div class="sceneTitle">Explore le monde, mine, combats et construis avec les autres joueurs.</div>
+              <div class="sceneTitle">Explore, mine, combats et construis.</div>
             </div>
             <div class="sceneBadges">
-              <span class="sceneBadge">T : chat</span>
-              <span class="sceneBadge">Clic gauche : attaquer ou miner</span>
-              <span class="sceneBadge">Clic droit : poser</span>
+              <span class="sceneBadge"><kbd>T</kbd> Chat</span>
+              <span class="sceneBadge"><kbd>LMB</kbd> Miner</span>
+              <span class="sceneBadge"><kbd>RMB</kbd> Poser</span>
+              <span class="sceneBadge"><kbd>Échap</kbd> Pause</span>
             </div>
           </div>
 
@@ -57,7 +59,7 @@
         <section class="chatHud" aria-label="Chat">
           <div id="chatLog" class="chatLog chatHudLog" aria-label="Journal du chat"></div>
           <form id="chatForm" class="chatForm chatHudForm" autocomplete="off">
-            <input id="chatInput" class="chatInput" placeholder="Entrée pour discuter..." maxlength="180" />
+            <input id="chatInput" class="chatInput" placeholder="T ou Entrée pour discuter..." maxlength="180" />
           </form>
         </section>
 
@@ -83,18 +85,23 @@
         <section class="controlsHud" aria-label="Raccourcis">
           <div class="controlsTitle">Raccourcis</div>
           <div class="controlList">
-            <div class="controlChip"><span>Déplacement</span><strong>A / D</strong></div>
-            <div class="controlChip"><span>Saut</span><strong>W / Espace</strong></div>
-            <div class="controlChip"><span>Chat</span><strong>T</strong></div>
-            <div class="controlChip"><span>Inventaire</span><strong>I / E</strong></div>
-            <div class="controlChip"><span>Jeter</span><strong>J</strong></div>
-            <div class="controlChip"><span>Coffre</span><strong>Clic droit</strong></div>
-            <div class="controlChip"><span>Armes</span><strong>Clic gauche</strong></div>
-            <div class="controlChip"><span>Skin</span><strong>Bouton du haut</strong></div>
+            <div class="controlCategory">Mouvement</div>
+            <div class="controlChip"><span>Gauche / Droite</span><strong><kbd>A</kbd> <kbd>D</kbd></strong></div>
+            <div class="controlChip"><span>Sauter</span><strong><kbd>W</kbd> <kbd>Espace</kbd></strong></div>
+            <div class="controlCategory">Combat</div>
+            <div class="controlChip"><span>Miner / Attaquer</span><strong><kbd>LMB</kbd></strong></div>
+            <div class="controlChip"><span>Poser / Coffre</span><strong><kbd>RMB</kbd></strong></div>
+            <div class="controlChip"><span>Jeter</span><strong><kbd>J</kbd></strong></div>
+            <div class="controlCategory">Interface</div>
+            <div class="controlChip"><span>Inventaire</span><strong><kbd>I</kbd> / <kbd>E</kbd></strong></div>
+            <div class="controlChip"><span>Chat</span><strong><kbd>T</kbd></strong></div>
+            <div class="controlChip"><span>Pause</span><strong><kbd>Échap</kbd></strong></div>
+            <div class="controlChip"><span>Debug</span><strong><kbd>F3</kbd></strong></div>
           </div>
         </section>
       </main>
 
+      <!-- Auth Overlay -->
       <div id="authOverlay" class="overlay hidden" aria-label="Authentification">
         <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="authTitle">
           <div class="dialogHeader">
@@ -122,6 +129,7 @@
         </div>
       </div>
 
+      <!-- Skin Overlay -->
       <div id="skinOverlay" class="overlay hidden" aria-label="Sélection du skin">
         <div class="dialog skinDialog" role="dialog" aria-modal="true" aria-labelledby="skinTitle">
           <div class="dialogHeader">
@@ -137,6 +145,7 @@
         </div>
       </div>
 
+      <!-- Inventory Overlay -->
       <div id="inventoryOverlay" class="overlay hidden" aria-label="Inventaire">
         <div class="dialog inventoryDialog" role="dialog" aria-modal="true" aria-labelledby="inventoryTitle">
           <div class="dialogHeader">
@@ -168,10 +177,11 @@
         </div>
       </div>
 
+      <!-- Fun Options Overlay -->
       <div id="funOverlay" class="overlay hidden" aria-label="Options rigolotes">
         <div class="dialog funDialog" role="dialog" aria-modal="true" aria-labelledby="funTitle">
           <div class="dialogHeader">
-            <div id="funTitle" class="dialogTitle">Options rigolotes</div>
+            <div id="funTitle" class="dialogTitle">Options visuelles</div>
             <div class="dialogSub">Des effets visuels un peu absurdes, juste pour le plaisir.</div>
           </div>
 
@@ -211,6 +221,90 @@
 
           <div class="row">
             <button id="funClose" class="btn" type="button">Fermer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ Pause Menu Overlay ═══════ -->
+      <div id="pauseOverlay" class="overlay hidden" aria-label="Menu Pause">
+        <div class="dialog pauseDialog" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+          <div class="dialogHeader pauseHeader">
+            <div id="pauseTitle" class="dialogTitle pauseMainTitle">⏸ Pause</div>
+            <div class="dialogSub">Le monde continue autour de toi.</div>
+          </div>
+
+          <div class="pauseActions">
+            <button id="pauseResume" class="pauseBtn" type="button">
+              <span class="pauseIcon">▶</span>
+              <div>
+                <strong>Reprendre</strong>
+                <span>Retour au jeu</span>
+              </div>
+              <kbd>Échap</kbd>
+            </button>
+            <button id="pauseControls" class="pauseBtn" type="button">
+              <span class="pauseIcon">⌨</span>
+              <div>
+                <strong>Contrôles</strong>
+                <span>Voir et modifier les raccourcis</span>
+              </div>
+              <kbd>⌨️</kbd>
+            </button>
+            <button id="pauseOptions" class="pauseBtn" type="button">
+              <span class="pauseIcon">✨</span>
+              <div>
+                <strong>Options visuelles</strong>
+                <span>Paillettes, disco et plus</span>
+              </div>
+              <kbd>F5</kbd>
+            </button>
+            <button id="pauseSkin" class="pauseBtn" type="button">
+              <span class="pauseIcon">🎨</span>
+              <div>
+                <strong>Apparence</strong>
+                <span>Changer de skin</span>
+              </div>
+              <kbd>F4</kbd>
+            </button>
+            <button id="pauseDisconnect" class="pauseBtn pauseBtnDanger" type="button">
+              <span class="pauseIcon">⏻</span>
+              <div>
+                <strong>Déconnexion</strong>
+                <span>Retour à l'écran de connexion</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- ═══════ Debug HUD ═══════ -->
+      <div id="debugHud" class="debugHud hidden" aria-label="Debug info">
+        <div class="debugTitle">Debug <kbd>F3</kbd></div>
+        <div id="debugContent" class="debugContent">
+          <div>FPS: <span id="debugFps">--</span></div>
+          <div>Pos: <span id="debugPos">-- , --</span></div>
+          <div>Chunk: <span id="debugChunk">-- , --</span></div>
+          <div>Joueurs: <span id="debugPlayers">0</span></div>
+          <div>Entités: <span id="debugEntities">0</span></div>
+          <div>Particules: <span id="debugParticles">0</span></div>
+        </div>
+      </div>
+
+      <!-- ═══════ Keybind Config Overlay ═══════ -->
+      <div id="keybindOverlay" class="overlay hidden" aria-label="Configuration des touches">
+        <div class="dialog keybindDialog" role="dialog" aria-modal="true" aria-labelledby="keybindTitle">
+          <div class="dialogHeader">
+            <div id="keybindTitle" class="dialogTitle">⌨ Configuration des touches</div>
+            <div class="dialogSub">Clique sur une touche pour la modifier. Appuie sur Échap pour annuler.</div>
+          </div>
+
+          <div id="keybindList" class="keybindList"></div>
+
+          <div class="row">
+            <button id="keybindReset" class="btn" type="button">Réinitialiser tout</button>
+            <button id="keybindClose" class="btn btnPrimary" type="button">Fermer</button>
           </div>
         </div>
       </div>

@@ -8,11 +8,11 @@
       "salt": "377ed1ef43910981d5c28d38843afc61",
       "hash": "5325da10e1f0213698561656dc5e1c521ae4f7c99d8eba16ff476bc3c58a775f",
       "createdAt": 1775632123779,
-      "skin": "classic",
+      "skin": "gold",
       "inventory": {
         "size": 9,
         "hotbarSize": 9,
-        "selectedSlot": 2,
+        "selectedSlot": 5,
         "slots": [
           {
             "itemType": "tool:pickaxe",
@@ -20,15 +20,15 @@
           },
           {
             "itemType": "block:stone",
-            "count": 97
+            "count": 99
           },
           {
             "itemType": "block:grass",
-            "count": 93
+            "count": 99
           },
           {
             "itemType": "block:stone",
-            "count": 97
+            "count": 99
           },
           {
             "itemType": "block:stone",
@@ -36,7 +36,7 @@
           },
           {
             "itemType": "block:dirt",
-            "count": 46
+            "count": 47
           },
           {
             "itemType": "block:grass",
@@ -48,7 +48,7 @@
           },
           {
             "itemType": "block:wood",
-            "count": 4
+            "count": 6
           }
         ]
       },

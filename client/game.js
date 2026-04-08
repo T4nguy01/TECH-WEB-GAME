@@ -9,10 +9,11 @@ const PLAYER_W = 14;
 const PLAYER_H = 32;
 
 export class Game {
-  constructor({ renderer, network, ui }) {
+  constructor({ renderer, network, ui, inputManager }) {
     this.renderer = renderer;
     this.network = network;
     this.ui = ui;
+    this.inputManager = inputManager;
 
     this.world = null;
     this.players = new Map();
@@ -28,7 +29,6 @@ export class Game {
       right: false,
       jump: false,
       hotbar: 0,
-      mouse: { x: 0, y: 0, left: false, right: false, leftClicked: false, rightClicked: false },
     };
 
     this._lastBlockActionSent = 0;
@@ -41,13 +41,11 @@ export class Game {
   }
 
   _sendInputState() {
-    this.network.send("input", {
-      input: {
-        left: this.input.left,
-        right: this.input.right,
-        jump: this.input.jump,
-        hotbar: this.input.hotbar,
-      },
+    this.network.sendInput({
+      left: this.input.left,
+      right: this.input.right,
+      jump: this.input.jump,
+      hotbar: this.input.hotbar,
     });
   }
 
@@ -239,6 +237,10 @@ export class Game {
       this.network.send("dropItem", { slot: slotIndex });
     };
 
+    this.ui.onDisconnect = () => {
+      location.reload();
+    };
+
     this.ui.onInventoryToggle = (open) => {
       if (open) {
         this.input.left = false;
@@ -257,75 +259,44 @@ export class Game {
     };
   }
 
+  // ═══════════════════════════════════════
+  // INPUT via InputManager
+  // ═══════════════════════════════════════
+
   _bindInput() {
-    const canvas = this.renderer?.canvas || null;
-    const onKey = (e, down) => {
-      const k = e.key.toLowerCase();
-      const inventoryOpen = this.ui.isInventoryOpen();
-      if (inventoryOpen && (k === "a" || k === "q" || k === "d" || k === "w" || k === "z" || k === " " || e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp")) {
-        return;
-      }
-      if (k === "a" || k === "q" || e.key === "ArrowLeft") this.input.left = down;
-      if (k === "d" || e.key === "ArrowRight") this.input.right = down;
-      if (k === "w" || k === "z" || e.key === "ArrowUp" || e.key === " ") this.input.jump = down;
-      if (/^[1-9]$/.test(k) && down) {
-        this.input.hotbar = Number(k) - 1;
-        this._sendInputState();
-      }
-    };
+    const im = this.inputManager;
+    if (!im) return;
 
-    window.addEventListener("keydown", (e) => {
+    // Movement: track held state from InputManager
+    im.on("moveLeft", () => { this.input.left = true; });
+    im.onRelease("moveLeft", () => { this.input.left = false; });
+
+    im.on("moveRight", () => { this.input.right = true; });
+    im.onRelease("moveRight", () => { this.input.right = false; });
+
+    im.on("jump", () => { this.input.jump = true; });
+    im.onRelease("jump", () => { this.input.jump = false; });
+
+    // Hotbar selection (1-9)
+    for (let i = 1; i <= 9; i++) {
+      const slot = i - 1;
+      im.on(`hotbar${i}`, () => {
+        this.input.hotbar = slot;
+        this._sendInputState();
+      });
+    }
+
+    // Mouse wheel for hotbar scrolling
+    im.onWheelChange((delta) => {
       if (this.ui.isChatFocused()) return;
-      onKey(e, true);
+      const next = (this.input.hotbar + (delta > 0 ? 1 : -1) + 9) % 9;
+      this.input.hotbar = next;
+      this._sendInputState();
     });
-    window.addEventListener("keyup", (e) => onKey(e, false));
 
-    const onPointerMove = (e) => {
-      this.input.mouse.x = e.clientX;
-      this.input.mouse.y = e.clientY;
-    };
-
-    const onPointerDown = (e) => {
-      if (e.button === 2) e.preventDefault();
-      if (e.button === 0) {
-        this.input.mouse.left = true;
-        this.input.mouse.leftClicked = true;
-      }
-      if (e.button === 2) {
-        this.input.mouse.right = true;
-        this.input.mouse.rightClicked = true;
-      }
-    };
-
-    const onPointerUp = (e) => {
-      if (e.button === 0) this.input.mouse.left = false;
-      if (e.button === 2) this.input.mouse.right = false;
-    };
-
-    window.addEventListener("mousemove", onPointerMove);
-    window.addEventListener("mousedown", onPointerDown);
-    window.addEventListener("mouseup", onPointerUp);
-
-    canvas?.addEventListener("pointermove", onPointerMove);
-    canvas?.addEventListener("pointerdown", onPointerDown);
-    canvas?.addEventListener("pointerup", onPointerUp);
+    // Canvas & window pointer events (mouse) — still bind directly since InputManager handles them
+    const canvas = this.renderer?.canvas || null;
     canvas?.addEventListener("contextmenu", (e) => e.preventDefault());
-
-    window.addEventListener("contextmenu", (e) => e.preventDefault());
-
-    window.addEventListener(
-      "wheel",
-      (e) => {
-        if (this.ui.isChatFocused()) return;
-        const delta = Math.sign(e.deltaY);
-        if (!delta) return;
-        e.preventDefault();
-        const next = (this.input.hotbar + (delta > 0 ? 1 : -1) + 9) % 9;
-        this.input.hotbar = next;
-        this._sendInputState();
-      },
-      { passive: false }
-    );
   }
 
   getLocalPlayer() {
@@ -364,35 +335,47 @@ export class Game {
       itemHint: selectedItem ? hintForItem(selectedItem.itemType) : "Aucun objet sélectionné",
     });
 
-    if (this.ui.isInventoryOpen()) {
+    // Update debug HUD
+    this.ui.updateDebug({
+      fps: this._fps,
+      x: local.x,
+      y: local.y,
+      players: this.players.size,
+      entities: this.droppedItems.length + this.projectiles.length,
+      particles: this.renderer.particles?.length || 0,
+    });
+
+    if (this.ui._anyOverlayOpen()) {
       this._sendInputState();
       return;
     }
 
     this._sendInputState();
 
-    const action = this.renderer.pickBlock(this.input.mouse.x, this.input.mouse.y, local);
-    const worldPoint = this.renderer.pickWorldPoint(this.input.mouse.x, this.input.mouse.y, local);
+    // Use mouse from InputManager instead of local this.input.mouse
+    const mouse = this.inputManager.mouse;
+    const action = this.renderer.pickBlock(mouse.x, mouse.y, local);
+    const worldPoint = this.renderer.pickWorldPoint(mouse.x, mouse.y, local);
     const placeAim = worldPoint ? this._findPlacementTarget(worldPoint.x, worldPoint.y, local) : null;
     this.renderer.setAimBlock(action || placeAim);
     const targetPlayer = this.renderer.pickPlayer(
-      this.input.mouse.x,
-      this.input.mouse.y,
+      mouse.x,
+      mouse.y,
       Array.from(this.players.values()),
       this.localId
     );
 
     const now = performance.now();
     if (now - this._lastBlockActionSent < 100) return;
-    const leftClicked = this.input.mouse.leftClicked;
-    const rightClicked = this.input.mouse.rightClicked;
-    this.input.mouse.leftClicked = false;
-    this.input.mouse.rightClicked = false;
+
+    const clicks = this.inputManager.consumeClicks();
+    const leftClicked = clicks.left;
+    const rightClicked = clicks.right;
 
     // Minecraft-like: left = mine, right = place
-    if (leftClicked || this.input.mouse.left) {
+    if (leftClicked || mouse.left) {
       if (selectedItem && isWeaponItem(selectedItem.itemType)) {
-        const aim = this.renderer.pickWorldPoint(this.input.mouse.x, this.input.mouse.y, local);
+        const aim = this.renderer.pickWorldPoint(mouse.x, mouse.y, local);
         if (aim) this.network.send("fireWeapon", { targetX: aim.x, targetY: aim.y });
       } else if (targetPlayer) {
         this.network.send("attackPlayer", { targetId: targetPlayer.id });
@@ -407,7 +390,7 @@ export class Game {
       }
     }
 
-    if (rightClicked || this.input.mouse.right) {
+    if (rightClicked || mouse.right) {
       const t = placeAim;
       const itemType = selectedItem?.itemType || null;
       const placeType = placeBlockTypeForItem(itemType);
@@ -425,7 +408,7 @@ export class Game {
         }
       }
     }
-    if (this.input.mouse.left || this.input.mouse.right) this._lastBlockActionSent = now;
+    if (mouse.left || mouse.right) this._lastBlockActionSent = now;
   }
 
   render() {

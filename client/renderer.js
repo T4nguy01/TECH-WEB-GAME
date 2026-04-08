@@ -48,23 +48,23 @@ export class Renderer {
   _blockColor(type) {
     switch (type) {
       case BlockTypes.GRASS:
-        return "#00ff88"; // Neon Spring Green
+        return "#5d994e"; // Natural Grass Green
       case BlockTypes.DIRT:
-        return "#ff8c00"; // Vibrant Orange-Earth
+        return "#795548"; // Earthy Dirt Brown
       case BlockTypes.STONE:
-        return "#a0a0ff"; // Electric Slate
+        return "#7a7a7a"; // Standard Stone Gray
       case BlockTypes.ORE_COAL:
-        return "#3300ff"; // Royal Neon Blue
+        return "#3a3a3a"; // Dark Coal Gray
       case BlockTypes.ORE_IRON:
-        return "#ff0066"; // Hot Pink / Rust
+        return "#d4a787"; // Natural Iron Bloom
       case BlockTypes.CHEST:
-        return "#ffff00"; // Electric Yellow
+        return "#8b5a2b"; // Oak Chest Brown
       case BlockTypes.WOOD:
-        return "#ff4400"; // Neon Terracotta
+        return "#5d4037"; // Dark Bark Brown
       case BlockTypes.LEAVES:
-        return "#00ffcc"; // Bright Teal-Green
+        return "#3e6b36"; // Deep Leaf Green
       case BlockTypes.BEDROCK:
-        return "#ff00ff"; // Cyber Magenta
+        return "#2a2a2a"; // Dark Bedrock Gray
       default:
         return null;
     }
